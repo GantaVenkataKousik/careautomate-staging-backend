@@ -11,9 +11,9 @@ const router = express.Router();
 router.get("/get-company-reports", authenticateToken, getCompanyReports);
 
 //update company data
-router.put("/update-company-data", authenticateToken, updateCompanyData);
+router.put("/update-company-data/", authenticateToken, updateCompanyData);
 
 //delete company
-router.delete("/delete-company", authenticateToken, deleteCompany);
+router.delete("/delete-company/:companyId", authenticateToken, deleteCompany);
 
 export default router;

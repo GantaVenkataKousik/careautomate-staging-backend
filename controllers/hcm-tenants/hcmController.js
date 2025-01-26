@@ -97,12 +97,25 @@ const getHcms = async (req, res) => {
   try {
     const hcms = await users.find({ role: 1, companyId: companyObjectId });
     const hcmsRecords = [];
+    const cities = [];
     for (const hcm of hcms) {
       const hcmInfoRecord = await hcmInfo.findOne({ _id: hcm.info_id });
-      hcmsRecords.push({ hcm, hcmInfoRecord });
-      console.log(hcmsRecords);
+      cities.push(hcmInfoRecord.addressInfo.city);
+
+      hcmsRecords.push({
+        id: hcm._id,
+        name: hcm.name,
+        email: hcm.email,
+        phoneNo: hcm.phoneNo,
+        hcmData: hcmInfoRecord
+      });
     }
-    return res.status(200).json({ success: true, message: "HCMs fetched successfully", response: hcmsRecords });
+    return res.status(200).json({
+      success: true, message: "HCMs fetched successfully", response: {
+        hcmsRecords,
+        cities,
+      }
+    });
   } catch (error) {
     return res.status(500).json({
       success: false,

@@ -86,7 +86,6 @@ const getCompanyReports = async (req, res) => {
 //update company data
 const updateCompanyData = async (req, res) => {
     const { adminId, adminName, adminEmail, adminPhoneNo, adminPassword } = req.body;
-    console.log(adminId, adminName, adminEmail, adminPhoneNo, adminPassword);
     try {
         const admin = await Users.findOne({ _id: adminId });
         if (!admin) {
@@ -115,7 +114,7 @@ const updateCompanyData = async (req, res) => {
 
 //delete company
 const deleteCompany = async (req, res) => {
-    const { companyId } = req.query;
+    const { companyId } = req.params;
     const companyObjectId = new mongoose.Types.ObjectId(companyId);
     try {
         await Company.findOneAndDelete({ _id: companyObjectId });

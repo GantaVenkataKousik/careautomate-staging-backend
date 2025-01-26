@@ -145,7 +145,7 @@ export const registerController = async (req, res) => {
         await settingsDocument.save();
 
         let companyRecord;
-        if (role === 2) {
+        if (role === 2 || role === 3) {
             companyRecord = new company({
                 adminId: newUser._id,
                 companyName: companyName,
