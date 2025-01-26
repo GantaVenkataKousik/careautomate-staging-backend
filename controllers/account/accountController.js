@@ -100,7 +100,7 @@ export const officeAdminAccountSetupController = async (req, res) => {
 
 // Fetch Account Details
 export const fetchAccountDetails = async (req, res) => {
-    const { adminId } = req.query;
+    const { adminId } = req.params;
     const adminIdObject = new mongoose.Types.ObjectId(adminId);
     try {
 
@@ -111,9 +111,8 @@ export const fetchAccountDetails = async (req, res) => {
         }
         // Respond with the account details
         res.status(200).json({
-            success: true, message: "Account details fetched successfully", response: {
-                "account-details": accountDetails,
-            }
+            success: true, message: "Account details fetched successfully", response:
+                accountDetails,
         });
     } catch (error) {
         console.error('Error fetching account details:', error);
@@ -193,6 +192,93 @@ export const deleteAccountDetails = async (req, res) => {
     });
 }
 
+//MNITS ACCOUNT
+export const updateMnitsAccount = async (req, res) => {
+    const { adminId } = req.params;
+    try {
+        const account = await accountSetup.findOne({ adminId: adminIdObject });
+        if (!account) {
+            return res.status(400).json({ success: false, message: "Account not found" });
+        }
+        const { username, password } = req.body;
+
+        if (username) {
+            account.mnitsLogin.username = username;
+        }
+        if (password) {
+            const hashedPassword = await bcrypt.hash(password, 10);
+            account.mnitsLogin.password = hashedPassword;
+        }
+
+        const updatedAccount = await account.save();
+        res.status(200).json({ success: true, message: "Account updated successfully", response: updatedAccount });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, message: "An error occurred", error: error.message });
+    }
+}
+
+//WAYSTAR ACCOUNT       
+export const updateWaystarAccount = async (req, res) => {
+    const { adminId } = req.params;
+    const adminIdObject = new mongoose.Types.ObjectId(adminId);
+    try {
+        const account = await accountSetup.findOne({ adminId: adminIdObject });
+        if (!account) {
+            return res.status(400).json({ success: false, message: "Account not found" });
+        }
+        const { username, password } = req.body;
+
+        if (username) {
+            account.waystarLogin.username = username;
+        }
+        if (password) {
+            const hashedPassword = await bcrypt.hash(password, 10);
+            account.waystarLogin.password = hashedPassword;
+        }
+
+        const updatedAccount = await account.save();
+        res.status(200).json({ success: true, message: "Account updated successfully", response: updatedAccount });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, message: "An error occurred", error: error.message });
+    }
+}
+
+
+//BANKING INFO
+export const updateBankingInfo = async (req, res) => {
+    const { adminId } = req.params;
+    const adminIdObject = new mongoose.Types.ObjectId(adminId);
+    try {
+        const { nameOnCard, cardNumber, expiryDate, billingAddress } = req.body;
+        const account = await accountSetup.findOne({ adminId: adminIdObject });
+        if (!account) {
+            return res.status(400).json({ success: false, message: "Account not found" });
+        }
+
+        if (nameOnCard) {
+            account.bankingInfo.nameOnCard = nameOnCard;
+        }
+        if (cardNumber) {
+            account.bankingInfo.cardNumber = cardNumber;
+        }
+        if (expiryDate) {
+            account.bankingInfo.expiryDate = expiryDate;
+        }
+        if (billingAddress) {
+            account.bankingInfo.billingAddress = billingAddress;
+        }
+
+        const updatedAccount = await account.save();
+        res.status(200).json({ success: true, message: "Account updated successfully", response: updatedAccount });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, message: "An error occurred", error: error.message });
+    }
+}
+
+
 //CHILD ADMIN ACCOUNT
 
 //add child admin account
@@ -266,19 +352,22 @@ export const addChildAdminAccount = async (req, res) => {
 }
 
 export const getChildAdminAccounts = async (req, res) => {
-    const { adminId } = req.query;
-    const childAdminAcc = await childAdminAccount.find({ adminId: adminId });
-    res.status(200).json({
-        success: true, message: "Child Admin Account Details fetched successfully", response: {
-            "childAdminAccounts": childAdminAcc
-        }
-    });
+    const { adminId } = req.params;
+    const adminIdObject = new mongoose.Types.ObjectId(adminId);
+    try {
+        const childAdminAcc = await childAdminAccount.find({ adminId: adminIdObject });
+        res.status(200).json({
+            success: true, message: "Child Admin Account Details fetched successfully", response:
+                childAdminAcc
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "An error occurred", error: error.message });
+    }
 }
 
 export const updateChildAdminAccount = async (req, res) => {
     const { id } = req.params;
     const updateData = req.body;
-    console.log(updateData);
     const objectId = new mongoose.Types.ObjectId(id);
     try {
         // Fetch the existing childAdminAccount

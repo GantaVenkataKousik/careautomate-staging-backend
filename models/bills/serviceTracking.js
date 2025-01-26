@@ -17,11 +17,9 @@ const hcmServiceDetailSchema = new mongoose.Schema({
     },
     methodOfContact: {
         type: String,
-        required: true
     },
     placeOfService: {
         type: String,
-        required: true
     }
 });
 

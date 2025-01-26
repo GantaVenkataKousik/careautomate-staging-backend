@@ -287,7 +287,7 @@ const getHcmChartInfo = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Tenant info fetched successfully",
+      message: "HCM chart info fetched successfully",
       response: data
     });
   } catch (error) {

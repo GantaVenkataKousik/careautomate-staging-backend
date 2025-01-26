@@ -1,5 +1,5 @@
 import express from 'express';
-import { getCompanyReports, updateCompanyData, deleteCompany } from '../../controllers/account/superAdminController.js';
+import { getCompanyReports, updateCompanyData, deleteCompany, getSuperAdminData } from '../../controllers/account/superAdminController.js';
 import { authenticateToken } from '../../middleware/auth.js';
 
 
@@ -15,5 +15,8 @@ router.put("/update-company-data/", authenticateToken, updateCompanyData);
 
 //delete company
 router.delete("/delete-company/:companyId", authenticateToken, deleteCompany);
+
+//superadmin data
+router.get("/get-super-admin-data/:adminId", authenticateToken, getSuperAdminData);
 
 export default router;

@@ -2,7 +2,7 @@ import ServiceTracking from '../../models/bills/serviceTracking.js';
 import users from '../../models/account/users.js';
 import tenantInfo from '../../models/hcm-tenants/tenantInfo.js';
 import Visits from '../../models/appointments-visits/visits.js';
-import hcmInfo from '../../models/hcm-tenants/hcmInfo.js';  
+import hcmInfo from '../../models/hcm-tenants/hcmInfo.js';
 
 //tenant reports
 const getTenantPersonalInfoReports = async (req, res) => {
@@ -56,12 +56,12 @@ const getServiceTrackingPlanReports = async (req, res) => {
             .populate({
                 path: 'tenantId',
                 select: '_id name',
-                model: 'users'
+                model: 'causers'
             })
             .populate({
                 path: 'hcmIds.hcmId',
                 select: '_id name',
-                model: 'users'
+                model: 'causers'
             });
 
         // Format the response

@@ -774,7 +774,7 @@ export const getTenantChartInfo = async (req, res) => {
   try {
     // Find all tenants with role 0
     const tenants = await users.find({ role: 0, companyId });
-
+    console.log(tenants)
     // Initialize the data structure for the response
     const data = {};
 

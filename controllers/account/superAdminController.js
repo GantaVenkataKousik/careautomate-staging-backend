@@ -83,21 +83,34 @@ const getCompanyReports = async (req, res) => {
     }
 };
 
+const isPasswordHashed = (password) => {
+    // Assuming bcrypt hashes are 60 characters long
+    return password && password.length === 60;
+};
+
 //update company data
 const updateCompanyData = async (req, res) => {
     const { adminId, adminName, adminEmail, adminPhoneNo, adminPassword } = req.body;
+    console.log(adminId, adminName, adminEmail, adminPhoneNo, adminPassword);
     try {
         const admin = await Users.findOne({ _id: adminId });
         if (!admin) {
             return res.status(400).json({ success: false, message: "Admin not found" });
         }
-        const hashedPassword = await bcrypt.hash(adminPassword, 10);
+
+        let hashedPassword;
+        if (adminPassword && !isPasswordHashed(adminPassword)) {
+            hashedPassword = await bcrypt.hash(adminPassword, 10);
+        } else {
+            hashedPassword = adminPassword;
+        }
+
         const updatedAdmin = {
             name: adminName ? adminName : admin.name,
             email: adminEmail ? adminEmail : admin.email,
             phoneNo: adminPhoneNo ? adminPhoneNo : admin.phoneNo,
-            password: adminPassword ? hashedPassword : admin.password,
-        }
+            password: hashedPassword,
+        };
         const updatedAdminDocument = await Users.findOneAndUpdate({ _id: adminId }, updatedAdmin, { new: true });
 
         res.status(200).json({
@@ -129,4 +142,18 @@ const deleteCompany = async (req, res) => {
     }
 }
 
-export { getCompanyReports, updateCompanyData, deleteCompany };
+//superadmin data
+const getSuperAdminData = async (req, res) => {
+    const { adminId } = req.params;
+    try {
+        const adminObjectId = new mongoose.Types.ObjectId(adminId);
+        const superAdmin = await Users.findOne({ _id: adminObjectId });
+        res.status(200).json({ success: true, message: "Superadmin data fetched successfully", response: superAdmin });
+    }
+    catch (error) {
+        console.error('Error fetching superadmin data:', error);
+        res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    }
+}
+
+export { getCompanyReports, updateCompanyData, deleteCompany, getSuperAdminData };
