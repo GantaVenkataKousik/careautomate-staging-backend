@@ -937,7 +937,7 @@ const getAssignedTenantsToHcm = async (req, res) => {
     const assignment = await tenantAssignedtoHcm.findOne({ hcmId })
       .populate({
         path: 'tenantIds',
-        model: 'users' // Fetch all fields for each user
+        model: 'causers' // Fetch all fields for each user
       });
 
     if (!assignment) {

@@ -91,7 +91,7 @@ export const getHcmUnitsStats = async (req, res) => {
 
 export const planUsage = async (req, res) => {
     try {
-        const { tenantId, companyId } = req.body;
+        const { tenantId } = req.body;
 
         // Fetch all service tracking records for the given tenant ID
         const serviceTrackings = await ServiceTracking.find({ tenantId, companyId });
@@ -134,10 +134,9 @@ export const planUsage = async (req, res) => {
 };
 
 export const getAllServicesByTenant = async (req, res) => {
-    const { companyId } = req.params;
     try {
-        const { tenantId, companyId } = req.body;
-        const services = await ServiceTracking.find({ tenantId, companyId });
+        const { tenantId } = req.body;
+        const services = await ServiceTracking.find({ tenantId });
         return res.status(200).json({ success: true, message: "Services fetched successfully", response: services });
     } catch (error) {
         console.error(error);

@@ -314,17 +314,17 @@ export const updateTenant = async (req, res) => {
       if (updatedTenantInfo.personalInfo?.firstName)
         nameParts.push(
           updatedTenantInfo.personalInfo?.firstName ||
-            existingUser.personalInfo?.firstName
+          existingUser.personalInfo?.firstName
         );
       if (updatedTenantInfo.personalInfo?.middleName)
         nameParts.push(
           updatedTenantInfo.personalInfo?.middleName ||
-            existingUser.personalInfo?.middleName
+          existingUser.personalInfo?.middleName
         );
       if (updatedTenantInfo.personalInfo?.lastName)
         nameParts.push(
           updatedTenantInfo.personalInfo?.lastName ||
-            existingUser.personalInfo?.lastName
+          existingUser.personalInfo?.lastName
         );
       const name = nameParts.join(' ');
 
@@ -443,6 +443,7 @@ export const assignServicesAndDocuments = async (req, res) => {
       unitsRemaining,
       totalUnits,
       billRate,
+      companyId
     } = serviceData;
 
     // Validate required fields
@@ -479,7 +480,7 @@ export const assignServicesAndDocuments = async (req, res) => {
     }
 
     // Create new service tracking record
-    const newServiceTracking = new serviceTracking({
+    const newServiceTracking = new ServiceTracking({
       tenantId,
       serviceType,
       startDate: new Date(startDate), // Ensure startDate is a Date object
@@ -1116,9 +1117,8 @@ function createReassessmentDetail(tenant, diffDays) {
     daysLeft: diffDays,
     period:
       tenant.startDate && tenant.endDate
-        ? `${tenant.startDate.toISOString().split('T')[0]} to ${
-            tenant.endDate.toISOString().split('T')[0]
-          }`
+        ? `${tenant.startDate.toISOString().split('T')[0]} to ${tenant.endDate.toISOString().split('T')[0]
+        }`
         : 'Undefined',
     hcmDetails: tenant.hcmIds.map((hcm) => ({
       hcmId: hcm.hcmId ? hcm.hcmId._id : 'Unknown HCM ID',
@@ -1139,7 +1139,7 @@ export const assignHcmsToTenant = async (req, res) => {
     if (!tenantId || !hcmIds || !Array.isArray(hcmIds) || !companyId) {
       return res.status(400).json({
         success: false,
-        message: 'Tenant ID and an array of HCM IDs are required',
+        message: 'Tenant ID and an array of HCM IDs & conmpany ID are required',
       });
     }
 
@@ -1198,11 +1198,11 @@ export const assignHcmsToTenant = async (req, res) => {
 
 // Get Assigned HCMs to a Tenant
 export const getAssignedHcmsToTenant = async (req, res) => {
-  const { tenantId, companyId } = req.body;
+  const { tenantId } = req.body;
 
   try {
     // Validate tenantId
-    if (!tenantId || !companyId) {
+    if (!tenantId) {
       return res
         .status(400)
         .json({ success: false, message: 'Tenant ID is required.' });
@@ -1217,10 +1217,10 @@ export const getAssignedHcmsToTenant = async (req, res) => {
 
     // Find the assignment for the given tenantId and populate complete HCM details
     const assignment = await hcmAssignedToTenant
-      .findOne({ tenantId: tenantId, companyId })
+      .findOne({ tenantId })
       .populate({
         path: 'hcmIds',
-        model: 'users', // Fetch all fields for each user
+        model: 'causers', // Fetch all fields for each user
       });
 
     if (!assignment) {

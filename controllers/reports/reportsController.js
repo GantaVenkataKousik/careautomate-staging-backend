@@ -66,11 +66,11 @@ const getServiceTrackingPlanReports = async (req, res) => {
 
         // Format the response
         const formattedReports = serviceTrackingReports.map(report => ({
-            tenantId: report.tenantId ? report.tenantId._id : 'Unknown Tenant ID',
-            tenantName: report.tenantId ? report.tenantId.name : 'Unknown Tenant',
+            tenantId: report.tenantId ? report.tenantId._id : '',
+            tenantName: report.tenantName ? report.tenantId.name : '',
             assignedHCMs: report.hcmIds.map(hcm => ({
-                hcmId: hcm.hcmId ? hcm.hcmId._id : 'Unknown HCM ID',
-                hcmName: hcm.hcmId ? hcm.hcmId.name : 'Unknown HCM',
+                hcmId: hcm.hcmId ? hcm.hcmId._id : '',
+                hcmName: hcm.hcmId ? hcm.hcmId.name : '',
                 workedHours: hcm.workedHours,
                 workedUnits: hcm.workedUnits,
                 serviceDetails: hcm.serviceDetails.map(detail => ({
@@ -108,13 +108,13 @@ const getTenantVisitComplianceReports = async (req, res) => {
         const visits = await Visits.find({ companyId })
             .populate({
                 path: 'tenantId',
-                select: '_id name',
-                model: 'users'
+                select: '_id name email',
+                model: 'causers'
             })
             .populate({
                 path: 'hcmId',
-                select: '_id name',
-                model: 'users'
+                select: '_id name email',
+                model: 'causers'
             });
 
         const formattedReports = visits.map(visit => {
