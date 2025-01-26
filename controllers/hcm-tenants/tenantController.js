@@ -1,15 +1,15 @@
-import users from "../../models/account/users.js";
-import tenantInfo from "../../models/hcm-tenants/tenantInfo.js";
-import bcrypt from "bcrypt";
-import HcmAppointments from "../../models/appointments-visits/appointments.js";
-import mongoose from "mongoose";
-import hcmAssignedToTenant from "../../models/hcm-tenants/hcmAssignedToTenant.js";
-import TenantHistory from "../../models/hcm-tenants/tenantHistory.js";
-import Visits from "../../models/appointments-visits/visits.js";
-import ServiceTracking from "../../models/bills/serviceTracking.js";
-import tenantNotes from "../../models/hcm-tenants/tenantNotes.js";
+import users from '../../models/account/users.js';
+import tenantInfo from '../../models/hcm-tenants/tenantInfo.js';
+import bcrypt from 'bcrypt';
+import HcmAppointments from '../../models/appointments-visits/appointments.js';
+import mongoose from 'mongoose';
+import hcmAssignedToTenant from '../../models/hcm-tenants/hcmAssignedToTenant.js';
+import TenantHistory from '../../models/hcm-tenants/tenantHistory.js';
+import Visits from '../../models/appointments-visits/visits.js';
+import ServiceTracking from '../../models/bills/serviceTracking.js';
+import tenantNotes from '../../models/hcm-tenants/tenantNotes.js';
 function generateControlNumber() {
-  return String(Math.floor(Math.random() * 1000000)).padStart(6, "0"); // 6-digit control number
+  return String(Math.floor(Math.random() * 1000000)).padStart(6, '0'); // 6-digit control number
 }
 
 const groupControlNumber = generateControlNumber();
@@ -18,7 +18,7 @@ export const createTenant = async (req, res) => {
   try {
     const { companyId } = req.body;
     const tenantData =
-      typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+      typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
 
     // Check if a user already exists with the same email
     const existingUser = await users.findOne({
@@ -29,7 +29,7 @@ export const createTenant = async (req, res) => {
     if (existingUser) {
       return res.status(400).json({
         success: false,
-        message: "A user with this email already exists.",
+        message: 'A user with this email already exists.',
       });
     }
 
@@ -54,7 +54,7 @@ export const createTenant = async (req, res) => {
     res.status(200).json({
       success: true,
       message:
-        "Tenant data recorded, Info record created, User created, and Bill created successfully.",
+        'Tenant data recorded, Info record created, User created, and Bill created successfully.',
       response: {
         tenantID: newUser._id,
         tenantData: savedInfo,
@@ -62,12 +62,10 @@ export const createTenant = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: error.message || "Error creating tenant data",
-      });
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Error creating tenant data',
+    });
   }
 };
 
@@ -77,16 +75,16 @@ export const tenantVisitHistory = async (req, res) => {
     // Find visits for the given tenantId and populate hcm and tenant details
     const visits = await Visits.find({ tenantId, companyId })
       .populate({
-        path: "hcmId",
-        select: "_id name", // Select only the id and name fields
-        model: "users",
+        path: 'hcmId',
+        select: '_id name', // Select only the id and name fields
+        model: 'users',
       })
       .populate({
-        path: "tenantId",
-        select: "_id name", // Select only the id and name fields
-        model: "users",
+        path: 'tenantId',
+        select: '_id name', // Select only the id and name fields
+        model: 'users',
       })
-      .select("serviceType date startTime endTime status"); // Select only the specified fields
+      .select('serviceType date startTime endTime status'); // Select only the specified fields
 
     // Format the response
     const formattedVisits = visits.map((visit) => ({
@@ -106,46 +104,40 @@ export const tenantVisitHistory = async (req, res) => {
       companyId,
     }));
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Visit history fetched successfully",
-        response: formattedVisits,
-      });
+    res.status(200).json({
+      success: true,
+      message: 'Visit history fetched successfully',
+      response: formattedVisits,
+    });
   } catch (error) {
-    console.error("Error fetching visit data:", error);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "An error occurred while fetching visit history data.",
-        response: error.message,
-      });
+    console.error('Error fetching visit data:', error);
+    res.status(500).json({
+      success: false,
+      message: 'An error occurred while fetching visit history data.',
+      response: error.message,
+    });
   }
 };
 
 export const updateTenant = async (req, res) => {
   try {
     const requestData =
-      typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+      typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
     const { email, updatedById, tenantData } = requestData; // Correctly destructure the request data
 
     // Step 1: Check if a user already exists with the same email
     const existingUser = await users.findOne({ email });
 
-    if (existingUser && existingUser.info_id !== "") {
+    if (existingUser && existingUser.info_id !== '') {
       // Fetch the existing tenant info
       const existingInfo = await tenantInfo.findById(existingUser.info_id);
 
       if (!existingInfo) {
-        return res
-          .status(404)
-          .json({
-            success: false,
-            message: "Tenant info not found.",
-            response: null,
-          });
+        return res.status(404).json({
+          success: false,
+          message: 'Tenant info not found.',
+          response: null,
+        });
       }
       const updatedPersonalInfo = {
         firstName:
@@ -334,7 +326,7 @@ export const updateTenant = async (req, res) => {
           updatedTenantInfo.personalInfo?.lastName ||
             existingUser.personalInfo?.lastName
         );
-      const name = nameParts.join(" ");
+      const name = nameParts.join(' ');
 
       // Update the user document with the relevant fields
       const userUpdateData = {};
@@ -372,7 +364,7 @@ export const updateTenant = async (req, res) => {
 
       return res.status(200).json({
         success: true,
-        message: "Existing tenant data updated successfully.",
+        message: 'Existing tenant data updated successfully.',
         response: {
           tenantID: existingUser._id,
           tenantData: updatedInfo,
@@ -384,17 +376,15 @@ export const updateTenant = async (req, res) => {
       // Handle case where no existing user is found
       res
         .status(400)
-        .json({ success: false, message: "Tenant not found.", response: null });
+        .json({ success: false, message: 'Tenant not found.', response: null });
     }
   } catch (error) {
     console.error(error);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: error.message || "Error updating tenant data",
-        response: error.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Error updating tenant data',
+      response: error.message,
+    });
   }
 };
 export const deleteTenant = async (req, res) => {
@@ -406,21 +396,19 @@ export const deleteTenant = async (req, res) => {
     );
     res.status(200).json({
       success: true,
-      message: "Tenant deleted successfully",
+      message: 'Tenant deleted successfully',
       response: {
-        "deleted tenant": deletedTenant,
-        "deleted tenant info": deletedTenantInfo,
+        'deleted tenant': deletedTenant,
+        'deleted tenant info': deletedTenantInfo,
       },
     });
   } catch (error) {
     console.error(error);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: error.message || "Error deleting tenant",
-        response: error.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Error deleting tenant',
+      response: error.message,
+    });
   }
 };
 
@@ -428,22 +416,18 @@ export const tenantProfileEditHistory = async (req, res) => {
   try {
     const { tenantId } = req.body;
     const history = await TenantHistory.find({ tenantId });
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Tenant profile edit history fetched successfully",
-        response: history,
-      });
+    res.status(200).json({
+      success: true,
+      message: 'Tenant profile edit history fetched successfully',
+      response: history,
+    });
   } catch (error) {
     console.error(error);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: error.message || "Error fetching tenant profile edit history",
-        response: error.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Error fetching tenant profile edit history',
+      response: error.message,
+    });
   }
 };
 
@@ -473,7 +457,7 @@ export const assignServicesAndDocuments = async (req, res) => {
     ) {
       return res.status(400).json({
         success: false,
-        message: "All service fields are required",
+        message: 'All service fields are required',
       });
     }
 
@@ -481,7 +465,7 @@ export const assignServicesAndDocuments = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(tenantId)) {
       return res.status(400).json({
         success: false,
-        message: "Invalid tenant ID format",
+        message: 'Invalid tenant ID format',
       });
     }
 
@@ -490,7 +474,7 @@ export const assignServicesAndDocuments = async (req, res) => {
     if (!tenant) {
       return res.status(404).json({
         success: false,
-        message: "Tenant not found",
+        message: 'Tenant not found',
       });
     }
 
@@ -511,14 +495,14 @@ export const assignServicesAndDocuments = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Service assigned successfully",
+      message: 'Service assigned successfully',
       response: newServiceTracking,
     });
   } catch (error) {
-    console.error("Error in assignServicesAndDocuments:", error);
+    console.error('Error in assignServicesAndDocuments:', error);
     res.status(500).json({
       success: false,
-      message: error.message || "Error assigning service and document",
+      message: error.message || 'Error assigning service and document',
     });
   }
 };
@@ -532,7 +516,7 @@ export const updateServiceStatus = async (req, res) => {
     if (!serviceId) {
       return res.status(400).json({
         success: false,
-        message: "Service ID is required",
+        message: 'Service ID is required',
       });
     }
 
@@ -540,7 +524,7 @@ export const updateServiceStatus = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(serviceId)) {
       return res.status(400).json({
         success: false,
-        message: "Invalid service ID format",
+        message: 'Invalid service ID format',
       });
     }
 
@@ -548,29 +532,29 @@ export const updateServiceStatus = async (req, res) => {
     if (!status && !reviewStatus) {
       return res.status(400).json({
         success: false,
-        message: "Either status or reviewStatus must be provided",
+        message: 'Either status or reviewStatus must be provided',
       });
     }
 
     // Validate status values if provided
     if (
       status &&
-      !["pending", "active", "completed", "cancelled"].includes(status)
+      !['pending', 'active', 'completed', 'cancelled'].includes(status)
     ) {
       return res.status(400).json({
         success: false,
-        message: "Invalid status value",
+        message: 'Invalid status value',
       });
     }
 
     // Validate reviewStatus values if provided
     if (
       reviewStatus &&
-      !["pending", "approved", "rejected"].includes(reviewStatus)
+      !['pending', 'approved', 'rejected'].includes(reviewStatus)
     ) {
       return res.status(400).json({
         success: false,
-        message: "Invalid reviewStatus value",
+        message: 'Invalid reviewStatus value',
       });
     }
 
@@ -579,7 +563,7 @@ export const updateServiceStatus = async (req, res) => {
     if (!service) {
       return res.status(404).json({
         success: false,
-        message: "Service not found",
+        message: 'Service not found',
       });
     }
 
@@ -590,14 +574,14 @@ export const updateServiceStatus = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Service status updated successfully",
+      message: 'Service status updated successfully',
       response: updatedService,
     });
   } catch (error) {
-    console.error("Error in updateServiceStatus:", error);
+    console.error('Error in updateServiceStatus:', error);
     res.status(500).json({
       success: false,
-      message: error.message || "Error updating service status",
+      message: error.message || 'Error updating service status',
     });
   }
 };
@@ -610,7 +594,7 @@ export const getServicesAndDocuments = async (req, res) => {
     if (!tenantId) {
       return res.status(303).json({
         success: false,
-        message: "Tenant ID is required",
+        message: 'Tenant ID is required',
       });
     }
 
@@ -618,7 +602,7 @@ export const getServicesAndDocuments = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(tenantId)) {
       return res.status(303).json({
         success: false,
-        message: "Invalid tenant ID format",
+        message: 'Invalid tenant ID format',
       });
     }
 
@@ -627,7 +611,7 @@ export const getServicesAndDocuments = async (req, res) => {
     if (!tenant) {
       return res.status(303).json({
         success: false,
-        message: "Tenant not found",
+        message: 'Tenant not found',
       });
     }
 
@@ -635,9 +619,9 @@ export const getServicesAndDocuments = async (req, res) => {
     const services = await serviceTracking
       .find({ tenantId })
       .populate({
-        path: "tenantId",
-        select: "name email phoneNo",
-        model: "users",
+        path: 'tenantId',
+        select: 'name email phoneNo',
+        model: 'users',
       })
       .sort({ createdAt: -1 }); // Sort by newest first
 
@@ -650,20 +634,20 @@ export const getServicesAndDocuments = async (req, res) => {
     if (!services || services.length === 0) {
       return res.status(303).json({
         success: false,
-        message: "No services found for this tenant",
+        message: 'No services found for this tenant',
       });
     }
 
     res.status(200).json({
       success: true,
-      message: "Services fetched successfully",
+      message: 'Services fetched successfully',
       response: formattedServices,
     });
   } catch (error) {
-    console.error("Error in getServicesAndDocuments:", error);
+    console.error('Error in getServicesAndDocuments:', error);
     res.status(500).json({
       success: false,
-      message: error.message || "Error fetching services",
+      message: error.message || 'Error fetching services',
     });
   }
 };
@@ -671,7 +655,7 @@ export const getServicesAndDocuments = async (req, res) => {
 export const createAppointment = async (req, res) => {
   try {
     const appointmentData =
-      typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+      typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
     const {
       tenantId,
       hcmId,
@@ -700,7 +684,7 @@ export const createAppointment = async (req, res) => {
     ) {
       return res.status(400).json({
         success: false,
-        message: "Missing required fields",
+        message: 'Missing required fields',
       });
     }
 
@@ -711,7 +695,7 @@ export const createAppointment = async (req, res) => {
     ) {
       return res.status(400).json({
         success: false,
-        message: "Invalid tenant ID or HCM ID format",
+        message: 'Invalid tenant ID or HCM ID format',
       });
     }
 
@@ -724,15 +708,15 @@ export const createAppointment = async (req, res) => {
     if (!tenant || !hcm) {
       return res.status(404).json({
         success: false,
-        message: "Tenant or HCM not found",
+        message: 'Tenant or HCM not found',
       });
     }
 
     // Validate methodOfContact and reasonForRemote
-    if (methodOfContact === "remote" && !reasonForRemote) {
+    if (methodOfContact === 'remote' && !reasonForRemote) {
       return res.status(400).json({
         success: false,
-        message: "Reason for remote contact is required when method is remote",
+        message: 'Reason for remote contact is required when method is remote',
       });
     }
 
@@ -741,7 +725,7 @@ export const createAppointment = async (req, res) => {
     if (isNaN(appointmentDate) || appointmentDate < new Date()) {
       return res.status(400).json({
         success: false,
-        message: "Invalid date or date is in the past",
+        message: 'Invalid date or date is in the past',
       });
     }
 
@@ -753,7 +737,7 @@ export const createAppointment = async (req, res) => {
     if (appointmentStartTime >= appointmentEndTime) {
       return res.status(400).json({
         success: false,
-        message: "Start time must be before end time.",
+        message: 'Start time must be before end time.',
         response: null,
       });
     }
@@ -812,7 +796,7 @@ export const createAppointment = async (req, res) => {
       ) {
         return res.status(400).json({
           success: false,
-          message: "Not enough units available to schedule this appointment.",
+          message: 'Not enough units available to schedule this appointment.',
           response: serviceTracking,
         });
       }
@@ -862,11 +846,11 @@ export const createAppointment = async (req, res) => {
       activity,
       methodOfContact,
       reasonForRemote:
-        methodOfContact === "remote" ? reasonForRemote : undefined,
+        methodOfContact === 'remote' ? reasonForRemote : undefined,
       placeOfService,
       serviceType,
       approved: false,
-      status: "pending",
+      status: 'pending',
       companyId,
     });
 
@@ -878,14 +862,14 @@ export const createAppointment = async (req, res) => {
       savedAppointment._id
     )
       .populate({
-        path: "hcmId",
-        select: "name email phoneNo",
-        model: "causers",
+        path: 'hcmId',
+        select: 'name email phoneNo',
+        model: 'causers',
       })
       .populate({
-        path: "tenantId",
-        select: "name email phoneNo",
-        model: "causers",
+        path: 'tenantId',
+        select: 'name email phoneNo',
+        model: 'causers',
       });
 
     // Format the response to include user details and service tracking
@@ -898,14 +882,14 @@ export const createAppointment = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Appointment created successfully",
+      message: 'Appointment created successfully',
       response: formattedResponse,
     });
   } catch (error) {
-    console.error("Error in createAppointment:", error);
+    console.error('Error in createAppointment:', error);
     res.status(500).json({
       success: false,
-      message: error.message || "Error creating appointment",
+      message: error.message || 'Error creating appointment',
     });
   }
 };
@@ -948,7 +932,7 @@ export const getAllTenants = async (req, res) => {
     }
     return res.status(200).json({
       success: true,
-      message: "Tenants fetched successfully",
+      message: 'Tenants fetched successfully',
       response: {
         tenantsRecords,
         cities,
@@ -956,10 +940,10 @@ export const getAllTenants = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Error in getAllTenants:", error);
+    console.error('Error in getAllTenants:', error);
     return res.status(500).json({
       success: false,
-      message: "Internal server error while fetching tenants",
+      message: 'Internal server error while fetching tenants',
     });
   }
 };
@@ -972,21 +956,19 @@ export const getTenant = async (req, res) => {
     const tenantInfoRecord = await tenantInfo.findOne({ _id: tenant.info_id });
     return res.status(200).json({
       success: true,
-      message: "Tenant fetched successfully",
+      message: 'Tenant fetched successfully',
       response: {
         tenant: tenant,
         tenantInfo: tenantInfoRecord,
       },
     });
   } catch (error) {
-    console.error("Error in getTenant:", error);
-    return res
-      .status(500)
-      .json({
-        success: false,
-        message: "Internal server error while fetching tenant",
-        error: error.message || error,
-      });
+    console.error('Error in getTenant:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error while fetching tenant',
+      error: error.message || error,
+    });
   }
 };
 
@@ -1003,18 +985,18 @@ export const getTenantChartInfo = async (req, res) => {
     tenants.forEach((tenant) => {
       const year = new Date().getFullYear().toString();
       const monthNames = [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec',
       ];
 
       if (tenant.movedOut) {
@@ -1043,7 +1025,7 @@ export const getTenantChartInfo = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Tenant info fetched successfully",
+      message: 'Tenant info fetched successfully',
       response: data,
     });
   } catch (error) {
@@ -1056,14 +1038,14 @@ export const tenantReassessments = async (req, res) => {
   try {
     const tenants = await ServiceTracking.find({ companyId })
       .populate({
-        path: "tenantId",
-        select: "_id name email",
-        model: "causers",
+        path: 'tenantId',
+        select: '_id name email',
+        model: 'causers',
       })
       .populate({
-        path: "hcmIds.hcmId",
-        select: "_id name email",
-        model: "causers",
+        path: 'hcmIds.hcmId',
+        select: '_id name email',
+        model: 'causers',
       });
 
     const today = new Date();
@@ -1077,32 +1059,32 @@ export const tenantReassessments = async (req, res) => {
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
         if (diffDays <= 90) {
-          dayCounts["90"]++;
-          reassessmentData["90"].push(
+          dayCounts['90']++;
+          reassessmentData['90'].push(
             createReassessmentDetail(tenant, diffDays)
           );
         }
         if (diffDays <= 60) {
-          dayCounts["60"]++;
-          reassessmentData["60"].push(
+          dayCounts['60']++;
+          reassessmentData['60'].push(
             createReassessmentDetail(tenant, diffDays)
           );
         }
         if (diffDays <= 30) {
-          dayCounts["30"]++;
-          reassessmentData["30"].push(
+          dayCounts['30']++;
+          reassessmentData['30'].push(
             createReassessmentDetail(tenant, diffDays)
           );
         }
         if (diffDays <= 15) {
-          dayCounts["15"]++;
-          reassessmentData["15"].push(
+          dayCounts['15']++;
+          reassessmentData['15'].push(
             createReassessmentDetail(tenant, diffDays)
           );
         }
         if (diffDays <= 5) {
-          dayCounts["5"]++;
-          reassessmentData["5"].push(
+          dayCounts['5']++;
+          reassessmentData['5'].push(
             createReassessmentDetail(tenant, diffDays)
           );
         }
@@ -1113,35 +1095,35 @@ export const tenantReassessments = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Tenant reassessments fetched successfully",
+      message: 'Tenant reassessments fetched successfully',
       response: {
         reassessmentData,
         dayCounts,
       },
     });
   } catch (error) {
-    console.error("Error in tenantReassessments:", error);
+    console.error('Error in tenantReassessments:', error);
     res.status(400).json({ success: false, message: error.message });
   }
 };
 
 function createReassessmentDetail(tenant, diffDays) {
   return {
-    tenantId: tenant.tenantId ? tenant.tenantId._id : "Unknown Tenant ID",
-    tenantName: tenant.tenantId ? tenant.tenantId.name : "Unknown Tenant",
-    tenantEmail: tenant.tenantId ? tenant.tenantId.email : "Unknown Email",
+    tenantId: tenant.tenantId ? tenant.tenantId._id : 'Unknown Tenant ID',
+    tenantName: tenant.tenantId ? tenant.tenantId.name : 'Unknown Tenant',
+    tenantEmail: tenant.tenantId ? tenant.tenantId.email : 'Unknown Email',
     serviceType: tenant.serviceType,
     daysLeft: diffDays,
     period:
       tenant.startDate && tenant.endDate
-        ? `${tenant.startDate.toISOString().split("T")[0]} to ${
-            tenant.endDate.toISOString().split("T")[0]
+        ? `${tenant.startDate.toISOString().split('T')[0]} to ${
+            tenant.endDate.toISOString().split('T')[0]
           }`
-        : "Undefined",
+        : 'Undefined',
     hcmDetails: tenant.hcmIds.map((hcm) => ({
-      hcmId: hcm.hcmId ? hcm.hcmId._id : "Unknown HCM ID",
-      hcmName: hcm.hcmId ? hcm.hcmId.name : "Unknown HCM",
-      hcmEmail: hcm.hcmId ? hcm.hcmId.email : "Unknown Email",
+      hcmId: hcm.hcmId ? hcm.hcmId._id : 'Unknown HCM ID',
+      hcmName: hcm.hcmId ? hcm.hcmId.name : 'Unknown HCM',
+      hcmEmail: hcm.hcmId ? hcm.hcmId.email : 'Unknown Email',
     })),
     unitsLeft: tenant.unitsRemaining || 0,
     scheduledUnits: tenant.scheduledUnits || 0,
@@ -1157,7 +1139,7 @@ export const assignHcmsToTenant = async (req, res) => {
     if (!tenantId || !hcmIds || !Array.isArray(hcmIds) || !companyId) {
       return res.status(400).json({
         success: false,
-        message: "Tenant ID and an array of HCM IDs are required",
+        message: 'Tenant ID and an array of HCM IDs are required',
       });
     }
 
@@ -1165,7 +1147,7 @@ export const assignHcmsToTenant = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(tenantId)) {
       return res.status(400).json({
         success: false,
-        message: "Invalid Tenant ID format",
+        message: 'Invalid Tenant ID format',
       });
     }
 
@@ -1201,15 +1183,15 @@ export const assignHcmsToTenant = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "HCMs assigned to tenant successfully",
+      message: 'HCMs assigned to tenant successfully',
       response: assignment,
     });
   } catch (error) {
-    console.error("Error in assignHcmsToTenant:", error);
+    console.error('Error in assignHcmsToTenant:', error);
     return res.status(500).json({
       success: false,
-      message: "Error processing HCM assignment",
-      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+      message: 'Error processing HCM assignment',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
 };
@@ -1223,41 +1205,41 @@ export const getAssignedHcmsToTenant = async (req, res) => {
     if (!tenantId || !companyId) {
       return res
         .status(400)
-        .json({ success: false, message: "Tenant ID is required." });
+        .json({ success: false, message: 'Tenant ID is required.' });
     }
 
     // Validate tenantId format
     if (!mongoose.Types.ObjectId.isValid(tenantId)) {
       return res
         .status(400)
-        .json({ success: false, message: "Invalid Tenant ID format." });
+        .json({ success: false, message: 'Invalid Tenant ID format.' });
     }
 
     // Find the assignment for the given tenantId and populate complete HCM details
     const assignment = await hcmAssignedToTenant
       .findOne({ tenantId: tenantId, companyId })
       .populate({
-        path: "hcmIds",
-        model: "users", // Fetch all fields for each user
+        path: 'hcmIds',
+        model: 'users', // Fetch all fields for each user
       });
 
     if (!assignment) {
       return res
         .status(300)
-        .json({ success: false, message: "No HCMs assigned to this tenant." });
+        .json({ success: false, message: 'No HCMs assigned to this tenant.' });
     }
 
     // Return the complete user details
     return res.status(200).json({
       success: true,
-      message: "HCMs assigned to tenant fetched successfully",
+      message: 'HCMs assigned to tenant fetched successfully',
       response: assignment.hcmIds,
     });
   } catch (error) {
-    console.error("Error fetching assigned HCMs:", error);
+    console.error('Error fetching assigned HCMs:', error);
     return res.status(500).json({
       success: false,
-      message: "Error fetching assigned HCMs.",
+      message: 'Error fetching assigned HCMs.',
       error: error.message || error,
     });
   }
@@ -1267,22 +1249,18 @@ export const getTenantInfoById = async (req, res) => {
   try {
     const { tenantInfoId, companyId } = req.body;
     const tenantInformation = await tenantInfo.findById(tenantInfoId);
-    return res
-      .status(200)
-      .json({
-        success: true,
-        message: "Tenant info fetched successfully",
-        response: tenantInformation,
-      });
+    return res.status(200).json({
+      success: true,
+      message: 'Tenant info fetched successfully',
+      response: tenantInformation,
+    });
   } catch (error) {
-    console.error("Error in getTenantInfoById:", error);
-    return res
-      .status(500)
-      .json({
-        success: false,
-        message: "Error fetching tenant info",
-        error: error.message || error,
-      });
+    console.error('Error in getTenantInfoById:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error fetching tenant info',
+      error: error.message || error,
+    });
   }
 };
 
@@ -1386,16 +1364,16 @@ export const addTenantNote = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Note added successfully",
+      message: 'Note added successfully',
       response: {
         tenantNotes: TenantNotes,
       },
     });
   } catch (error) {
-    console.error("Error adding note:", error);
+    console.error('Error adding note:', error);
     res.status(500).json({
       success: false,
-      message: "Internal server error",
+      message: 'Internal server error',
       response: error.message,
     });
   }
@@ -1407,14 +1385,14 @@ export const getTenantNotes = async (req, res) => {
     const tenantNotesDocument = await tenantNotes
       .findOne({ tenantId })
       .populate({
-        path: "notes.notedBy",
-        select: "-accountSetup -passwordChangedAt",
+        path: 'notes.notedBy',
+        select: '-accountSetup -passwordChangedAt',
       });
 
     if (!tenantNotesDocument) {
       return res
         .status(404)
-        .json({ success: false, message: "Tenant notes not found" });
+        .json({ success: false, message: 'Tenant notes not found' });
     }
 
     // Refine the response to exclude _id, tenantId, noteCounter, and _id inside notes
@@ -1429,20 +1407,18 @@ export const getTenantNotes = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "Tenant notes fetched successfully",
+      message: 'Tenant notes fetched successfully',
       response: {
         tenantNotes: refinedNotes,
       },
     });
   } catch (error) {
-    console.error("Error fetching tenant notes:", error);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Error fetching tenant notes",
-        error: error.message || error,
-      });
+    console.error('Error fetching tenant notes:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching tenant notes',
+      error: error.message || error,
+    });
   }
 };
 
@@ -1456,7 +1432,7 @@ export const deleteTenantNote = async (req, res) => {
     if (!TenantNotes) {
       return res
         .status(400)
-        .json({ success: false, message: "Tenant notes not found" });
+        .json({ success: false, message: 'Tenant notes not found' });
     }
 
     // Find the index of the note to be deleted
@@ -1468,7 +1444,7 @@ export const deleteTenantNote = async (req, res) => {
     if (noteIndex === -1) {
       return res
         .status(400)
-        .json({ success: false, message: "Note not found" });
+        .json({ success: false, message: 'Note not found' });
     }
 
     // Remove the note from the array
@@ -1479,20 +1455,18 @@ export const deleteTenantNote = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "Tenant note deleted successfully",
+      message: 'Tenant note deleted successfully',
       response: {
-        "deleted Note": TenantNotes,
+        'deleted Note': TenantNotes,
       },
     });
   } catch (error) {
-    console.error("Error deleting tenant note:", error);
-    return res
-      .status(500)
-      .json({
-        success: false,
-        message: "Internal server error",
-        response: error.message,
-      });
+    console.error('Error deleting tenant note:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      response: error.message,
+    });
   }
 };
 
@@ -1509,7 +1483,7 @@ export const updateTenantNote = async (req, res) => {
     if (!TenantNotes) {
       return res
         .status(400)
-        .json({ success: false, message: "Tenant notes not found" });
+        .json({ success: false, message: 'Tenant notes not found' });
     }
 
     // Find the index of the note to be updated
@@ -1521,7 +1495,7 @@ export const updateTenantNote = async (req, res) => {
     if (noteIndex === -1) {
       return res
         .status(400)
-        .json({ success: false, message: "Note not found" });
+        .json({ success: false, message: 'Note not found' });
     }
 
     // Retrieve the existing note
@@ -1537,20 +1511,18 @@ export const updateTenantNote = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "Tenant note updated successfully",
+      message: 'Tenant note updated successfully',
       response: {
-        "updated Note": existingNote,
+        'updated Note': existingNote,
       },
     });
   } catch (error) {
-    console.error("Error updating tenant note:", error);
-    return res
-      .status(500)
-      .json({
-        success: false,
-        message: "Internal server error",
-        response: error.message,
-      });
+    console.error('Error updating tenant note:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      response: error.message,
+    });
   }
 };
 
@@ -1563,7 +1535,7 @@ export const tenantsRunningOutOfUnits = async (req, res) => {
     });
     res.status(200).json({
       success: true,
-      message: "Tenants running out of units fetched successfully",
+      message: 'Tenants running out of units fetched successfully',
       response: {
         count: tenants.length,
       },
