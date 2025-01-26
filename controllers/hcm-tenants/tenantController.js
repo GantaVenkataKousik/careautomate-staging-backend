@@ -17,15 +17,19 @@ const groupControlNumber = generateControlNumber();
 export const createTenant = async (req, res) => {
   try {
     const { companyId } = req.body;
-    const tenantData = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+    const tenantData =
+      typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
 
     // Check if a user already exists with the same email
-    const existingUser = await users.findOne({ email: tenantData.personalInfo.email, companyId });
+    const existingUser = await users.findOne({
+      email: tenantData.personalInfo.email,
+      companyId,
+    });
 
     if (existingUser) {
       return res.status(400).json({
         success: false,
-        message: "A user with this email already exists."
+        message: 'A user with this email already exists.',
       });
     }
 
@@ -43,21 +47,25 @@ export const createTenant = async (req, res) => {
       phoneNo: tenantData.contactInfo.phoneNumber,
       info_id: savedInfo._id,
       role: 0,
-      companyId
+      companyId,
     });
     await newUser.save();
 
     res.status(200).json({
       success: true,
-      message: "Tenant data recorded, Info record created, User created, and Bill created successfully.",
+      message:
+        'Tenant data recorded, Info record created, User created, and Bill created successfully.',
       response: {
         tenantID: newUser._id,
         tenantData: savedInfo,
-      }
+      },
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, message: error.message || "Error creating tenant data" });
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Error creating tenant data',
+    });
   }
 };
 
@@ -69,125 +77,218 @@ export const tenantVisitHistory = async (req, res) => {
       .populate({
         path: 'hcmId',
         select: '_id name', // Select only the id and name fields
-        model: 'users'
+        model: 'users',
       })
       .populate({
         path: 'tenantId',
         select: '_id name', // Select only the id and name fields
-        model: 'users'
+        model: 'users',
       })
       .select('serviceType date startTime endTime status'); // Select only the specified fields
 
     // Format the response
-    const formattedVisits = visits.map(visit => ({
+    const formattedVisits = visits.map((visit) => ({
       hcm: {
         id: visit.hcmId._id,
-        name: visit.hcmId.name
+        name: visit.hcmId.name,
       },
       tenant: {
         id: visit.tenantId._id,
-        name: visit.tenantId.name
+        name: visit.tenantId.name,
       },
       serviceType: visit.serviceType,
       date: visit.date,
       startTime: visit.startTime,
       endTime: visit.endTime,
       status: visit.status,
-      companyId
+      companyId,
     }));
 
-    res.status(200).json({ success: true, message: "Visit history fetched successfully", response: formattedVisits });
+    res.status(200).json({
+      success: true,
+      message: 'Visit history fetched successfully',
+      response: formattedVisits,
+    });
   } catch (error) {
-    console.error("Error fetching visit data:", error);
-    res.status(500).json({ success: false, message: "An error occurred while fetching visit history data.", response: error.message });
+    console.error('Error fetching visit data:', error);
+    res.status(500).json({
+      success: false,
+      message: 'An error occurred while fetching visit history data.',
+      response: error.message,
+    });
   }
 };
 
 export const updateTenant = async (req, res) => {
   try {
-    const requestData = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+    const requestData =
+      typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
     const { email, updatedById, tenantData } = requestData; // Correctly destructure the request data
 
     // Step 1: Check if a user already exists with the same email
     const existingUser = await users.findOne({ email });
 
-    if (existingUser && existingUser.info_id !== "") {
+    if (existingUser && existingUser.info_id !== '') {
       // Fetch the existing tenant info
       const existingInfo = await tenantInfo.findById(existingUser.info_id);
 
       if (!existingInfo) {
-        return res.status(404).json({ success: false, message: "Tenant info not found.", response: null });
+        return res.status(404).json({
+          success: false,
+          message: 'Tenant info not found.',
+          response: null,
+        });
       }
       const updatedPersonalInfo = {
-        firstName: tenantData.personalInfo?.firstName || existingInfo.personalInfo?.firstName,
-        middleName: tenantData.personalInfo?.middleName || existingInfo.personalInfo?.middleName,
-        lastName: tenantData.personalInfo?.lastName || existingInfo.personalInfo?.lastName,
+        firstName:
+          tenantData.personalInfo?.firstName ||
+          existingInfo.personalInfo?.firstName,
+        middleName:
+          tenantData.personalInfo?.middleName ||
+          existingInfo.personalInfo?.middleName,
+        lastName:
+          tenantData.personalInfo?.lastName ||
+          existingInfo.personalInfo?.lastName,
         dob: tenantData.personalInfo?.dob || existingInfo.personalInfo?.dob,
-        gender: tenantData.personalInfo?.gender || existingInfo.personalInfo?.gender,
-        maPMINumber: tenantData.personalInfo?.maPMINumber || existingInfo.personalInfo?.maPMINumber,
-        email: tenantData.personalInfo?.email || existingInfo.personalInfo?.email,
-
+        gender:
+          tenantData.personalInfo?.gender || existingInfo.personalInfo?.gender,
+        maPMINumber:
+          tenantData.personalInfo?.maPMINumber ||
+          existingInfo.personalInfo?.maPMINumber,
+        email:
+          tenantData.personalInfo?.email || existingInfo.personalInfo?.email,
       };
       const updatedInsuranceData = {
-        insurance: tenantData.admissionInfo?.insurance || existingInfo.admissionInfo?.insurance,
-        insuranceNumber: tenantData.admissionInfo?.insuranceNumber || existingInfo.admissionInfo?.insuranceNumber,
+        insurance:
+          tenantData.admissionInfo?.insurance ||
+          existingInfo.admissionInfo?.insurance,
+        insuranceNumber:
+          tenantData.admissionInfo?.insuranceNumber ||
+          existingInfo.admissionInfo?.insuranceNumber,
         ssn: tenantData.admissionInfo?.ssn || existingInfo.admissionInfo?.ssn,
-        intakeDate: tenantData.admissionInfo?.intakeDate || existingInfo.admissionInfo?.intakeDate,
-        letGoDate: tenantData.admissionInfo?.letGoDate || existingInfo.admissionInfo?.letGoDate,
-        letGoReason: tenantData.admissionInfo?.letGoReason || existingInfo.admissionInfo?.letGoReason,
-        diagnosisCode: tenantData.admissionInfo?.diagnosisCode || existingInfo.admissionInfo?.diagnosisCode,
+        intakeDate:
+          tenantData.admissionInfo?.intakeDate ||
+          existingInfo.admissionInfo?.intakeDate,
+        letGoDate:
+          tenantData.admissionInfo?.letGoDate ||
+          existingInfo.admissionInfo?.letGoDate,
+        letGoReason:
+          tenantData.admissionInfo?.letGoReason ||
+          existingInfo.admissionInfo?.letGoReason,
+        diagnosisCode:
+          tenantData.admissionInfo?.diagnosisCode ||
+          existingInfo.admissionInfo?.diagnosisCode,
       };
       const updatedMailingAddress = {
-        line1: tenantData.mailingAddress?.line1 || existingInfo.mailingAddress?.line1,
-        line2: tenantData.mailingAddress?.line2 || existingInfo.mailingAddress?.line2,
-        city: tenantData.mailingAddress?.city || existingInfo.mailingAddress?.city,
-        state: tenantData.mailingAddress?.state || existingInfo.mailingAddress?.state,
-        zipCode: tenantData.mailingAddress?.zipCode || existingInfo.mailingAddress?.zipCode,
+        line1:
+          tenantData.mailingAddress?.line1 ||
+          existingInfo.mailingAddress?.line1,
+        line2:
+          tenantData.mailingAddress?.line2 ||
+          existingInfo.mailingAddress?.line2,
+        city:
+          tenantData.mailingAddress?.city || existingInfo.mailingAddress?.city,
+        state:
+          tenantData.mailingAddress?.state ||
+          existingInfo.mailingAddress?.state,
+        zipCode:
+          tenantData.mailingAddress?.zipCode ||
+          existingInfo.mailingAddress?.zipCode,
       };
       // Create a new emergencyContact object with all fields
       const updatedEmergencyContact = {
-        firstName: tenantData.emergencyContact?.firstName || existingInfo.emergencyContact?.firstName,
-        middleName: tenantData.emergencyContact?.middleName || existingInfo.emergencyContact?.middleName,
-        lastName: tenantData.emergencyContact?.lastName || existingInfo.emergencyContact?.lastName,
-        phoneNumber: tenantData.emergencyContact?.phoneNumber || existingInfo.emergencyContact?.phoneNumber,
-        email: tenantData.emergencyContact?.email || existingInfo.emergencyContact?.email,
-        relationship: tenantData.emergencyContact?.relationship || existingInfo.emergencyContact?.relationship,
+        firstName:
+          tenantData.emergencyContact?.firstName ||
+          existingInfo.emergencyContact?.firstName,
+        middleName:
+          tenantData.emergencyContact?.middleName ||
+          existingInfo.emergencyContact?.middleName,
+        lastName:
+          tenantData.emergencyContact?.lastName ||
+          existingInfo.emergencyContact?.lastName,
+        phoneNumber:
+          tenantData.emergencyContact?.phoneNumber ||
+          existingInfo.emergencyContact?.phoneNumber,
+        email:
+          tenantData.emergencyContact?.email ||
+          existingInfo.emergencyContact?.email,
+        relationship:
+          tenantData.emergencyContact?.relationship ||
+          existingInfo.emergencyContact?.relationship,
       };
       const contactInfo = {
-        phoneNumber: tenantData.contactInfo?.phoneNumber || existingInfo.contactInfo?.phoneNumber,
+        phoneNumber:
+          tenantData.contactInfo?.phoneNumber ||
+          existingInfo.contactInfo?.phoneNumber,
         email: tenantData.contactInfo?.email || existingInfo.contactInfo?.email,
-        homePhone: tenantData.contactInfo?.homePhone || existingInfo.contactInfo?.homePhone,
-        cellPhone: tenantData.contactInfo?.cellPhone || existingInfo.contactInfo?.cellPhone,
+        homePhone:
+          tenantData.contactInfo?.homePhone ||
+          existingInfo.contactInfo?.homePhone,
+        cellPhone:
+          tenantData.contactInfo?.cellPhone ||
+          existingInfo.contactInfo?.cellPhone,
         race: tenantData.contactInfo?.race || existingInfo.contactInfo?.race,
-        ethnicity: tenantData.contactInfo?.ethnicity || existingInfo.contactInfo?.ethnicity,
+        ethnicity:
+          tenantData.contactInfo?.ethnicity ||
+          existingInfo.contactInfo?.ethnicity,
       };
       const updatedResponsibleParty = {
-        firstName: tenantData.responsibleParty?.firstName || existingInfo.responsibleParty?.firstName,
-        middleInitial: tenantData.responsibleParty?.middleInitial || existingInfo.responsibleParty?.middleInitial,
-        lastName: tenantData.responsibleParty?.lastName || existingInfo.responsibleParty?.lastName,
-        phoneNumber: tenantData.responsibleParty?.phoneNumber || existingInfo.responsibleParty?.phoneNumber,
-        email: tenantData.responsibleParty?.email || existingInfo.responsibleParty?.email,
-        relationship: tenantData.responsibleParty?.relationship || existingInfo.responsibleParty?.relationship,
+        firstName:
+          tenantData.responsibleParty?.firstName ||
+          existingInfo.responsibleParty?.firstName,
+        middleInitial:
+          tenantData.responsibleParty?.middleInitial ||
+          existingInfo.responsibleParty?.middleInitial,
+        lastName:
+          tenantData.responsibleParty?.lastName ||
+          existingInfo.responsibleParty?.lastName,
+        phoneNumber:
+          tenantData.responsibleParty?.phoneNumber ||
+          existingInfo.responsibleParty?.phoneNumber,
+        email:
+          tenantData.responsibleParty?.email ||
+          existingInfo.responsibleParty?.email,
+        relationship:
+          tenantData.responsibleParty?.relationship ||
+          existingInfo.responsibleParty?.relationship,
       };
       const updatedCaseManager = {
-        firstName: tenantData.caseManager?.firstName || existingInfo.caseManager?.firstName,
-        middleName: tenantData.caseManager?.middleName || existingInfo.caseManager?.middleName,
-        lastName: tenantData.caseManager?.lastName || existingInfo.caseManager?.lastName,
-        phoneNumber: tenantData.caseManager?.phoneNumber || existingInfo.caseManager?.phoneNumber,
+        firstName:
+          tenantData.caseManager?.firstName ||
+          existingInfo.caseManager?.firstName,
+        middleName:
+          tenantData.caseManager?.middleName ||
+          existingInfo.caseManager?.middleName,
+        lastName:
+          tenantData.caseManager?.lastName ||
+          existingInfo.caseManager?.lastName,
+        phoneNumber:
+          tenantData.caseManager?.phoneNumber ||
+          existingInfo.caseManager?.phoneNumber,
         email: tenantData.caseManager?.email || existingInfo.caseManager?.email,
       };
       const updatedAddress = {
-        addressLine1: tenantData.address?.addressLine1 || existingInfo.address?.addressLine1,
-        addressLine2: tenantData.address?.addressLine2 || existingInfo.address?.addressLine2,
+        addressLine1:
+          tenantData.address?.addressLine1 ||
+          existingInfo.address?.addressLine1,
+        addressLine2:
+          tenantData.address?.addressLine2 ||
+          existingInfo.address?.addressLine2,
         city: tenantData.address?.city || existingInfo.address?.city,
         state: tenantData.address?.state || existingInfo.address?.state,
         zipCode: tenantData.address?.zipCode || existingInfo.address?.zipCode,
-        mailingSameAsAbove: tenantData.address?.mailingSameAsAbove || existingInfo.address?.mailingSameAsAbove,
-        mailingDifferent: tenantData.address?.mailingDifferent || existingInfo.address?.mailingDifferent,
+        mailingSameAsAbove:
+          tenantData.address?.mailingSameAsAbove ||
+          existingInfo.address?.mailingSameAsAbove,
+        mailingDifferent:
+          tenantData.address?.mailingDifferent ||
+          existingInfo.address?.mailingDifferent,
       };
       const updatedLoginInfo = {
-        userName: tenantData.loginInfo?.userName || existingInfo.loginInfo?.userName,
-        password: tenantData.loginInfo?.password || existingInfo.loginInfo?.password,
+        userName:
+          tenantData.loginInfo?.userName || existingInfo.loginInfo?.userName,
+        password:
+          tenantData.loginInfo?.password || existingInfo.loginInfo?.password,
       };
 
       const updatedTenantInfo = {
@@ -202,23 +303,51 @@ export const updateTenant = async (req, res) => {
         responsibleParty: updatedResponsibleParty,
       };
       // Update the associated info document
-      const updatedInfo = await tenantInfo.findByIdAndUpdate(existingUser.info_id, updatedInfoData, { new: true });
+      const updatedInfo = await tenantInfo.findByIdAndUpdate(
+        existingUser.info_id,
+        updatedTenantInfo,
+        { new: true }
+      );
 
       // Construct the name only if the fields exist
       const nameParts = [];
-      if (updatedTenantInfo.personalInfo?.firstName) nameParts.push(updatedTenantInfo.personalInfo?.firstName || existingUser.personalInfo?.firstName);
-      if (updatedTenantInfo.personalInfo?.middleName) nameParts.push(updatedTenantInfo.personalInfo?.middleName || existingUser.personalInfo?.middleName);
-      if (updatedTenantInfo.personalInfo?.lastName) nameParts.push(updatedTenantInfo.personalInfo?.lastName || existingUser.personalInfo?.lastName);
+      if (updatedTenantInfo.personalInfo?.firstName)
+        nameParts.push(
+          updatedTenantInfo.personalInfo?.firstName ||
+            existingUser.personalInfo?.firstName
+        );
+      if (updatedTenantInfo.personalInfo?.middleName)
+        nameParts.push(
+          updatedTenantInfo.personalInfo?.middleName ||
+            existingUser.personalInfo?.middleName
+        );
+      if (updatedTenantInfo.personalInfo?.lastName)
+        nameParts.push(
+          updatedTenantInfo.personalInfo?.lastName ||
+            existingUser.personalInfo?.lastName
+        );
       const name = nameParts.join(' ');
 
       // Update the user document with the relevant fields
       const userUpdateData = {};
       if (name) userUpdateData.name = name;
-      if (updatedTenantInfo.personalInfo?.email) userUpdateData.email = updatedTenantInfo.personalInfo.email || existingUser.personalInfo.email;
-      if (updatedTenantInfo.contactInfo?.phoneNumber) userUpdateData.phoneNo = updatedTenantInfo.contactInfo.phoneNumber || existingUser.contactInfo.phoneNumber;
-      if (updatedTenantInfo.contactInfo?.email) userUpdateData.email = updatedTenantInfo.contactInfo.email || existingUser.contactInfo.email;
+      if (updatedTenantInfo.personalInfo?.email)
+        userUpdateData.email =
+          updatedTenantInfo.personalInfo.email ||
+          existingUser.personalInfo.email;
+      if (updatedTenantInfo.contactInfo?.phoneNumber)
+        userUpdateData.phoneNo =
+          updatedTenantInfo.contactInfo.phoneNumber ||
+          existingUser.contactInfo.phoneNumber;
+      if (updatedTenantInfo.contactInfo?.email)
+        userUpdateData.email =
+          updatedTenantInfo.contactInfo.email || existingUser.contactInfo.email;
 
-      const updatedUser = await users.findByIdAndUpdate(existingUser._id, userUpdateData, { new: true });
+      const updatedUser = await users.findByIdAndUpdate(
+        existingUser._id,
+        userUpdateData,
+        { new: true }
+      );
 
       // Retrieve the name of the user who made the update
       // const updater = await users.findById(updatedById);
@@ -235,37 +364,51 @@ export const updateTenant = async (req, res) => {
 
       return res.status(200).json({
         success: true,
-        message: "Existing tenant data updated successfully.",
+        message: 'Existing tenant data updated successfully.',
         response: {
           tenantID: existingUser._id,
           tenantData: updatedInfo,
           userData: updatedUser,
           // historyData: historyEntry
-        }
+        },
       });
     } else {
       // Handle case where no existing user is found
-      res.status(400).json({ success: false, message: "Tenant not found.", response: null });
+      res
+        .status(400)
+        .json({ success: false, message: 'Tenant not found.', response: null });
     }
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, message: error.message || "Error updating tenant data", response: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Error updating tenant data',
+      response: error.message,
+    });
   }
 };
 export const deleteTenant = async (req, res) => {
   const { id } = req.params;
   try {
     const deletedTenant = await users.findByIdAndDelete(id);
-    const deletedTenantInfo = await tenantInfo.findByIdAndDelete(deletedTenant.info_id);
+    const deletedTenantInfo = await tenantInfo.findByIdAndDelete(
+      deletedTenant.info_id
+    );
     res.status(200).json({
-      success: true, message: "Tenant deleted successfully", response: {
-        "deleted tenant": deletedTenant,
-        "deleted tenant info": deletedTenantInfo
-      }
+      success: true,
+      message: 'Tenant deleted successfully',
+      response: {
+        'deleted tenant': deletedTenant,
+        'deleted tenant info': deletedTenantInfo,
+      },
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, message: error.message || "Error deleting tenant", response: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Error deleting tenant',
+      response: error.message,
+    });
   }
 };
 
@@ -273,10 +416,18 @@ export const tenantProfileEditHistory = async (req, res) => {
   try {
     const { tenantId } = req.body;
     const history = await TenantHistory.find({ tenantId });
-    res.status(200).json({ success: true, message: "Tenant profile edit history fetched successfully", response: history });
+    res.status(200).json({
+      success: true,
+      message: 'Tenant profile edit history fetched successfully',
+      response: history,
+    });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, message: error.message || "Error fetching tenant profile edit history", response: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Error fetching tenant profile edit history',
+      response: error.message,
+    });
   }
 };
 
@@ -291,14 +442,22 @@ export const assignServicesAndDocuments = async (req, res) => {
       endDate,
       unitsRemaining,
       totalUnits,
-      billRate
+      billRate,
     } = serviceData;
 
     // Validate required fields
-    if (!tenantId || !serviceType || !startDate || !endDate || !unitsRemaining || !totalUnits || !billRate) {
+    if (
+      !tenantId ||
+      !serviceType ||
+      !startDate ||
+      !endDate ||
+      !unitsRemaining ||
+      !totalUnits ||
+      !billRate
+    ) {
       return res.status(400).json({
         success: false,
-        message: 'All service fields are required'
+        message: 'All service fields are required',
       });
     }
 
@@ -306,7 +465,7 @@ export const assignServicesAndDocuments = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(tenantId)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid tenant ID format'
+        message: 'Invalid tenant ID format',
       });
     }
 
@@ -315,7 +474,7 @@ export const assignServicesAndDocuments = async (req, res) => {
     if (!tenant) {
       return res.status(404).json({
         success: false,
-        message: 'Tenant not found'
+        message: 'Tenant not found',
       });
     }
 
@@ -328,7 +487,7 @@ export const assignServicesAndDocuments = async (req, res) => {
       unitsRemaining: Number(unitsRemaining),
       totalUnits: Number(totalUnits),
       billRate: Number(billRate),
-      hcmIds: [] // Initialize hcmIds as an empty array
+      hcmIds: [], // Initialize hcmIds as an empty array
     });
 
     // Save the service tracking
@@ -337,14 +496,13 @@ export const assignServicesAndDocuments = async (req, res) => {
     res.status(200).json({
       success: true,
       message: 'Service assigned successfully',
-      response: newServiceTracking
+      response: newServiceTracking,
     });
-
   } catch (error) {
     console.error('Error in assignServicesAndDocuments:', error);
     res.status(500).json({
       success: false,
-      message: error.message || 'Error assigning service and document'
+      message: error.message || 'Error assigning service and document',
     });
   }
 };
@@ -358,7 +516,7 @@ export const updateServiceStatus = async (req, res) => {
     if (!serviceId) {
       return res.status(400).json({
         success: false,
-        message: 'Service ID is required'
+        message: 'Service ID is required',
       });
     }
 
@@ -366,7 +524,7 @@ export const updateServiceStatus = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(serviceId)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid service ID format'
+        message: 'Invalid service ID format',
       });
     }
 
@@ -374,23 +532,29 @@ export const updateServiceStatus = async (req, res) => {
     if (!status && !reviewStatus) {
       return res.status(400).json({
         success: false,
-        message: 'Either status or reviewStatus must be provided'
+        message: 'Either status or reviewStatus must be provided',
       });
     }
 
     // Validate status values if provided
-    if (status && !['pending', 'active', 'completed', 'cancelled'].includes(status)) {
+    if (
+      status &&
+      !['pending', 'active', 'completed', 'cancelled'].includes(status)
+    ) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid status value'
+        message: 'Invalid status value',
       });
     }
 
     // Validate reviewStatus values if provided
-    if (reviewStatus && !['pending', 'approved', 'rejected'].includes(reviewStatus)) {
+    if (
+      reviewStatus &&
+      !['pending', 'approved', 'rejected'].includes(reviewStatus)
+    ) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid reviewStatus value'
+        message: 'Invalid reviewStatus value',
       });
     }
 
@@ -399,7 +563,7 @@ export const updateServiceStatus = async (req, res) => {
     if (!service) {
       return res.status(404).json({
         success: false,
-        message: 'Service not found'
+        message: 'Service not found',
       });
     }
 
@@ -411,14 +575,13 @@ export const updateServiceStatus = async (req, res) => {
     res.status(200).json({
       success: true,
       message: 'Service status updated successfully',
-      response: updatedService
+      response: updatedService,
     });
-
   } catch (error) {
     console.error('Error in updateServiceStatus:', error);
     res.status(500).json({
       success: false,
-      message: error.message || 'Error updating service status'
+      message: error.message || 'Error updating service status',
     });
   }
 };
@@ -431,7 +594,7 @@ export const getServicesAndDocuments = async (req, res) => {
     if (!tenantId) {
       return res.status(303).json({
         success: false,
-        message: "Tenant ID is required"
+        message: 'Tenant ID is required',
       });
     }
 
@@ -439,7 +602,7 @@ export const getServicesAndDocuments = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(tenantId)) {
       return res.status(303).json({
         success: false,
-        message: "Invalid tenant ID format"
+        message: 'Invalid tenant ID format',
       });
     }
 
@@ -448,50 +611,51 @@ export const getServicesAndDocuments = async (req, res) => {
     if (!tenant) {
       return res.status(303).json({
         success: false,
-        message: "Tenant not found"
+        message: 'Tenant not found',
       });
     }
 
     // Find all services for this tenant with populated tenant details
-    const services = await serviceTracking.find({ tenantId })
+    const services = await serviceTracking
+      .find({ tenantId })
       .populate({
         path: 'tenantId',
         select: 'name email phoneNo',
-        model: 'users'
+        model: 'users',
       })
       .sort({ createdAt: -1 }); // Sort by newest first
 
     // Format the response
-    const formattedServices = services.map(service => ({
+    const formattedServices = services.map((service) => ({
       ...service.toObject(),
-      tenantDetails: service.tenantId
+      tenantDetails: service.tenantId,
     }));
 
     if (!services || services.length === 0) {
       return res.status(303).json({
         success: false,
-        message: "No services found for this tenant"
+        message: 'No services found for this tenant',
       });
     }
 
     res.status(200).json({
       success: true,
-      message: "Services fetched successfully",
-      response: formattedServices
+      message: 'Services fetched successfully',
+      response: formattedServices,
     });
-
   } catch (error) {
     console.error('Error in getServicesAndDocuments:', error);
     res.status(500).json({
       success: false,
-      message: error.message || "Error fetching services"
+      message: error.message || 'Error fetching services',
     });
   }
 };
 
 export const createAppointment = async (req, res) => {
   try {
-    const appointmentData = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+    const appointmentData =
+      typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
     const {
       tenantId,
       hcmId,
@@ -503,36 +667,48 @@ export const createAppointment = async (req, res) => {
       reasonForRemote,
       placeOfService,
       serviceType,
-      companyId
+      companyId,
     } = appointmentData;
 
     // Validate required fields
-    if (!tenantId || !hcmId || !date || !startTime || !endTime || !activity ||
-      !methodOfContact || !placeOfService || !serviceType) {
+    if (
+      !tenantId ||
+      !hcmId ||
+      !date ||
+      !startTime ||
+      !endTime ||
+      !activity ||
+      !methodOfContact ||
+      !placeOfService ||
+      !serviceType
+    ) {
       return res.status(400).json({
         success: false,
-        message: "Missing required fields"
+        message: 'Missing required fields',
       });
     }
 
     // Validate IDs
-    if (!mongoose.Types.ObjectId.isValid(tenantId) || !mongoose.Types.ObjectId.isValid(hcmId)) {
+    if (
+      !mongoose.Types.ObjectId.isValid(tenantId) ||
+      !mongoose.Types.ObjectId.isValid(hcmId)
+    ) {
       return res.status(400).json({
         success: false,
-        message: "Invalid tenant ID or HCM ID format"
+        message: 'Invalid tenant ID or HCM ID format',
       });
     }
 
     // Check if tenant and HCM exist
     const [tenant, hcm] = await Promise.all([
       users.findById(tenantId),
-      users.findById(hcmId)
+      users.findById(hcmId),
     ]);
 
     if (!tenant || !hcm) {
       return res.status(404).json({
         success: false,
-        message: "Tenant or HCM not found"
+        message: 'Tenant or HCM not found',
       });
     }
 
@@ -540,7 +716,7 @@ export const createAppointment = async (req, res) => {
     if (methodOfContact === 'remote' && !reasonForRemote) {
       return res.status(400).json({
         success: false,
-        message: "Reason for remote contact is required when method is remote"
+        message: 'Reason for remote contact is required when method is remote',
       });
     }
 
@@ -549,7 +725,7 @@ export const createAppointment = async (req, res) => {
     if (isNaN(appointmentDate) || appointmentDate < new Date()) {
       return res.status(400).json({
         success: false,
-        message: "Invalid date or date is in the past"
+        message: 'Invalid date or date is in the past',
       });
     }
 
@@ -562,19 +738,23 @@ export const createAppointment = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: 'Start time must be before end time.',
-        response: null
+        response: null,
       });
     }
 
     // Calculate the duration in hours
-    const durationInHours = (appointmentEndTime - appointmentStartTime) / (1000 * 60 * 60);
+    const durationInHours =
+      (appointmentEndTime - appointmentStartTime) / (1000 * 60 * 60);
 
     // Convert hours to units (150 hours = 600 units, so 1 hour = 4 units)
     let unitsToAdd = durationInHours * 4;
     unitsToAdd = parseFloat(unitsToAdd.toFixed(2)); // Round to two decimal places
 
     // Find the service tracking record
-    let serviceTracking = await ServiceTracking.findOne({ tenantId, serviceType });
+    let serviceTracking = await ServiceTracking.findOne({
+      tenantId,
+      serviceType,
+    });
     if (!serviceTracking) {
       // Create a new service tracking record with default values
       const startDate = new Date();
@@ -590,27 +770,34 @@ export const createAppointment = async (req, res) => {
         totalUnits: 600,
         billRate: 17.17,
         scheduledUnits: unitsToAdd,
-        hcmIds: [{
-          hcmId,
-          serviceDetails: [{
-            dateOfService: appointmentDate,
-            scheduledUnits: unitsToAdd,
-            workedUnits: 0, // Initially 0, will be updated after the appointment
-            methodOfContact,
-            placeOfService
-          }]
-        }],
-        companyId
+        hcmIds: [
+          {
+            hcmId,
+            serviceDetails: [
+              {
+                dateOfService: appointmentDate,
+                scheduledUnits: unitsToAdd,
+                workedUnits: 0, // Initially 0, will be updated after the appointment
+                methodOfContact,
+                placeOfService,
+              },
+            ],
+          },
+        ],
+        companyId,
       });
 
       await serviceTracking.save();
     } else {
       // Check if there are enough units available
-      if (serviceTracking.scheduledUnits + unitsToAdd > serviceTracking.unitsRemaining) {
+      if (
+        serviceTracking.scheduledUnits + unitsToAdd >
+        serviceTracking.unitsRemaining
+      ) {
         return res.status(400).json({
           success: false,
           message: 'Not enough units available to schedule this appointment.',
-          response: serviceTracking
+          response: serviceTracking,
         });
       }
 
@@ -619,26 +806,30 @@ export const createAppointment = async (req, res) => {
       serviceTracking.unitsRemaining -= unitsToAdd;
 
       // Find the HCM entry and add the service detail
-      const hcmEntry = serviceTracking.hcmIds.find(hcm => hcm.hcmId && hcm.hcmId.toString() === hcmId);
+      const hcmEntry = serviceTracking.hcmIds.find(
+        (hcm) => hcm.hcmId && hcm.hcmId.toString() === hcmId
+      );
       if (hcmEntry) {
         hcmEntry.serviceDetails.push({
           dateOfService: appointmentDate,
           scheduledUnits: unitsToAdd,
           workedUnits: 0, // Initially 0, will be updated after the appointment
           methodOfContact,
-          placeOfService
+          placeOfService,
         });
       } else {
         // If HCM entry doesn't exist, create a new one
         serviceTracking.hcmIds.push({
           hcmId,
-          serviceDetails: [{
-            dateOfService: appointmentDate,
-            scheduledUnits: unitsToAdd,
-            workedUnits: 0, // Initially 0, will be updated after the appointment
-            methodOfContact,
-            placeOfService
-          }]
+          serviceDetails: [
+            {
+              dateOfService: appointmentDate,
+              scheduledUnits: unitsToAdd,
+              workedUnits: 0, // Initially 0, will be updated after the appointment
+              methodOfContact,
+              placeOfService,
+            },
+          ],
         });
       }
 
@@ -654,28 +845,31 @@ export const createAppointment = async (req, res) => {
       endTime: appointmentEndTime,
       activity,
       methodOfContact,
-      reasonForRemote: methodOfContact === 'remote' ? reasonForRemote : undefined,
+      reasonForRemote:
+        methodOfContact === 'remote' ? reasonForRemote : undefined,
       placeOfService,
       serviceType,
       approved: false,
       status: 'pending',
-      companyId
+      companyId,
     });
 
     // Save the appointment
     const savedAppointment = await newAppointment.save();
 
     // Fetch the saved appointment with populated fields
-    const populatedAppointment = await HcmAppointments.findById(savedAppointment._id)
+    const populatedAppointment = await HcmAppointments.findById(
+      savedAppointment._id
+    )
       .populate({
         path: 'hcmId',
         select: 'name email phoneNo',
-        model: 'causers'
+        model: 'causers',
       })
       .populate({
         path: 'tenantId',
         select: 'name email phoneNo',
-        model: 'causers'
+        model: 'causers',
       });
 
     // Format the response to include user details and service tracking
@@ -683,19 +877,19 @@ export const createAppointment = async (req, res) => {
       appointmentData: populatedAppointment.toObject(),
       hcmDetails: populatedAppointment.hcmId,
       tenantDetails: populatedAppointment.tenantId,
-      serviceTracking: serviceTracking
+      serviceTracking: serviceTracking,
     };
 
     res.status(200).json({
       success: true,
-      message: "Appointment created successfully",
-      response: formattedResponse
+      message: 'Appointment created successfully',
+      response: formattedResponse,
     });
   } catch (error) {
     console.error('Error in createAppointment:', error);
     res.status(500).json({
       success: false,
-      message: error.message || "Error creating appointment"
+      message: error.message || 'Error creating appointment',
     });
   }
 };
@@ -704,20 +898,23 @@ export const getAllTenants = async (req, res) => {
   const { companyId } = req.params;
   const companyObjectId = new mongoose.Types.ObjectId(companyId);
   try {
-
-    const tenants = await users.find({ role: 0, companyId: companyObjectId })
+    const tenants = await users.find({ role: 0, companyId: companyObjectId });
 
     const tenantsRecords = [];
     const cities = [];
     const insurance = [];
 
     for (const tenant of tenants) {
-      const tenantInfoRecord = await tenantInfo.findOne({ _id: tenant.info_id });
+      const tenantInfoRecord = await tenantInfo.findOne({
+        _id: tenant.info_id,
+      });
       cities.push(tenantInfoRecord.address.city);
       insurance.push(tenantInfoRecord.admissionInfo.insurance);
 
       const services = [];
-      const serviceTracking = await ServiceTracking.find({ tenantId: tenant._id });
+      const serviceTracking = await ServiceTracking.find({
+        tenantId: tenant._id,
+      });
 
       for (const service of serviceTracking) {
         services.push(service.serviceType);
@@ -729,27 +926,27 @@ export const getAllTenants = async (req, res) => {
           email: tenant.email,
           phoneNo: tenant.phoneNo,
           tenantInfo: tenantInfoRecord,
-          services: services
+          services: services,
         },
       });
     }
     return res.status(200).json({
       success: true,
-      message: "Tenants fetched successfully",
+      message: 'Tenants fetched successfully',
       response: {
         tenantsRecords,
         cities,
-        insurance
-      }
+        insurance,
+      },
     });
   } catch (error) {
     console.error('Error in getAllTenants:', error);
     return res.status(500).json({
       success: false,
-      message: 'Internal server error while fetching tenants'
+      message: 'Internal server error while fetching tenants',
     });
   }
-}
+};
 
 export const getTenant = async (req, res) => {
   const { id } = req.params;
@@ -758,16 +955,22 @@ export const getTenant = async (req, res) => {
     const tenant = await users.findById(tenantId);
     const tenantInfoRecord = await tenantInfo.findOne({ _id: tenant.info_id });
     return res.status(200).json({
-      success: true, message: "Tenant fetched successfully", response: {
-        "tenant": tenant,
-        "tenantInfo": tenantInfoRecord
-      }
+      success: true,
+      message: 'Tenant fetched successfully',
+      response: {
+        tenant: tenant,
+        tenantInfo: tenantInfoRecord,
+      },
     });
   } catch (error) {
     console.error('Error in getTenant:', error);
-    return res.status(500).json({ success: false, message: 'Internal server error while fetching tenant', error: error.message || error });
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error while fetching tenant',
+      error: error.message || error,
+    });
   }
-}
+};
 
 export const getTenantChartInfo = async (req, res) => {
   const { companyId } = req.params;
@@ -779,9 +982,22 @@ export const getTenantChartInfo = async (req, res) => {
     const data = {};
 
     // Process each tenant
-    tenants.forEach(tenant => {
+    tenants.forEach((tenant) => {
       const year = new Date().getFullYear().toString();
-      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const monthNames = [
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec',
+      ];
 
       if (tenant.movedOut) {
         const movedOutDate = new Date(tenant.movedOutDate);
@@ -809,8 +1025,8 @@ export const getTenantChartInfo = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Tenant info fetched successfully",
-      response: data
+      message: 'Tenant info fetched successfully',
+      response: data,
     });
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -824,43 +1040,53 @@ export const tenantReassessments = async (req, res) => {
       .populate({
         path: 'tenantId',
         select: '_id name email',
-        model: 'causers'
+        model: 'causers',
       })
       .populate({
         path: 'hcmIds.hcmId',
         select: '_id name email',
-        model: 'causers'
+        model: 'causers',
       });
 
     const today = new Date();
-    const dayCounts = { "90": 0, "60": 0, "30": 0, "15": 0, "5": 0 };
-    const reassessmentData = { "90": [], "60": [], "30": [], "15": [], "5": [] };
+    const dayCounts = { 90: 0, 60: 0, 30: 0, 15: 0, 5: 0 };
+    const reassessmentData = { 90: [], 60: [], 30: [], 15: [], 5: [] };
 
-    tenants.forEach(tenant => {
+    tenants.forEach((tenant) => {
       if (tenant.endDate) {
         const endDate = new Date(tenant.endDate);
         const diffTime = endDate - today;
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
         if (diffDays <= 90) {
-          dayCounts["90"]++;
-          reassessmentData["90"].push(createReassessmentDetail(tenant, diffDays));
+          dayCounts['90']++;
+          reassessmentData['90'].push(
+            createReassessmentDetail(tenant, diffDays)
+          );
         }
         if (diffDays <= 60) {
-          dayCounts["60"]++;
-          reassessmentData["60"].push(createReassessmentDetail(tenant, diffDays));
+          dayCounts['60']++;
+          reassessmentData['60'].push(
+            createReassessmentDetail(tenant, diffDays)
+          );
         }
         if (diffDays <= 30) {
-          dayCounts["30"]++;
-          reassessmentData["30"].push(createReassessmentDetail(tenant, diffDays));
+          dayCounts['30']++;
+          reassessmentData['30'].push(
+            createReassessmentDetail(tenant, diffDays)
+          );
         }
         if (diffDays <= 15) {
-          dayCounts["15"]++;
-          reassessmentData["15"].push(createReassessmentDetail(tenant, diffDays));
+          dayCounts['15']++;
+          reassessmentData['15'].push(
+            createReassessmentDetail(tenant, diffDays)
+          );
         }
         if (diffDays <= 5) {
-          dayCounts["5"]++;
-          reassessmentData["5"].push(createReassessmentDetail(tenant, diffDays));
+          dayCounts['5']++;
+          reassessmentData['5'].push(
+            createReassessmentDetail(tenant, diffDays)
+          );
         }
       } else {
         console.warn(`End date is undefined for tenant with ID: ${tenant._id}`);
@@ -869,11 +1095,11 @@ export const tenantReassessments = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Tenant reassessments fetched successfully",
+      message: 'Tenant reassessments fetched successfully',
       response: {
         reassessmentData,
-        dayCounts
-      }
+        dayCounts,
+      },
     });
   } catch (error) {
     console.error('Error in tenantReassessments:', error);
@@ -888,20 +1114,24 @@ function createReassessmentDetail(tenant, diffDays) {
     tenantEmail: tenant.tenantId ? tenant.tenantId.email : 'Unknown Email',
     serviceType: tenant.serviceType,
     daysLeft: diffDays,
-    period: tenant.startDate && tenant.endDate ? `${tenant.startDate.toISOString().split('T')[0]} to ${tenant.endDate.toISOString().split('T')[0]}` : 'Undefined',
-    hcmDetails: tenant.hcmIds.map(hcm => ({
+    period:
+      tenant.startDate && tenant.endDate
+        ? `${tenant.startDate.toISOString().split('T')[0]} to ${
+            tenant.endDate.toISOString().split('T')[0]
+          }`
+        : 'Undefined',
+    hcmDetails: tenant.hcmIds.map((hcm) => ({
       hcmId: hcm.hcmId ? hcm.hcmId._id : 'Unknown HCM ID',
       hcmName: hcm.hcmId ? hcm.hcmId.name : 'Unknown HCM',
-      hcmEmail: hcm.hcmId ? hcm.hcmId.email : 'Unknown Email'
+      hcmEmail: hcm.hcmId ? hcm.hcmId.email : 'Unknown Email',
     })),
     unitsLeft: tenant.unitsRemaining || 0,
-    scheduledUnits: tenant.scheduledUnits || 0
+    scheduledUnits: tenant.scheduledUnits || 0,
   };
 }
 
 // Assign HCM to a Tenant
 export const assignHcmsToTenant = async (req, res) => {
-
   try {
     const { tenantId, hcmIds, companyId } = req.body;
 
@@ -909,7 +1139,7 @@ export const assignHcmsToTenant = async (req, res) => {
     if (!tenantId || !hcmIds || !Array.isArray(hcmIds) || !companyId) {
       return res.status(400).json({
         success: false,
-        message: "Tenant ID and an array of HCM IDs are required"
+        message: 'Tenant ID and an array of HCM IDs are required',
       });
     }
 
@@ -917,7 +1147,7 @@ export const assignHcmsToTenant = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(tenantId)) {
       return res.status(400).json({
         success: false,
-        message: "Invalid Tenant ID format"
+        message: 'Invalid Tenant ID format',
       });
     }
 
@@ -926,7 +1156,7 @@ export const assignHcmsToTenant = async (req, res) => {
       if (!mongoose.Types.ObjectId.isValid(hcmId)) {
         return res.status(400).json({
           success: false,
-          message: `Invalid HCM ID format: ${hcmId}`
+          message: `Invalid HCM ID format: ${hcmId}`,
         });
       }
     }
@@ -935,7 +1165,7 @@ export const assignHcmsToTenant = async (req, res) => {
     let assignment = await hcmAssignedToTenant.findOne({ tenantId, companyId });
     if (assignment) {
       // Add new HCM IDs to the existing assignment
-      hcmIds.forEach(hcmId => {
+      hcmIds.forEach((hcmId) => {
         if (!assignment.hcmIds.includes(hcmId)) {
           assignment.hcmIds.push(hcmId);
         }
@@ -946,23 +1176,22 @@ export const assignHcmsToTenant = async (req, res) => {
       assignment = new hcmAssignedToTenant({
         tenantId,
         hcmIds,
-        companyId
+        companyId,
       });
       await assignment.save();
     }
 
     return res.status(200).json({
       success: true,
-      message: "HCMs assigned to tenant successfully",
-      response: assignment
+      message: 'HCMs assigned to tenant successfully',
+      response: assignment,
     });
-
   } catch (error) {
     console.error('Error in assignHcmsToTenant:', error);
     return res.status(500).json({
       success: false,
-      message: "Error processing HCM assignment",
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      message: 'Error processing HCM assignment',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
 };
@@ -974,37 +1203,44 @@ export const getAssignedHcmsToTenant = async (req, res) => {
   try {
     // Validate tenantId
     if (!tenantId || !companyId) {
-      return res.status(400).json({ success: false, message: 'Tenant ID is required.' });
+      return res
+        .status(400)
+        .json({ success: false, message: 'Tenant ID is required.' });
     }
 
     // Validate tenantId format
     if (!mongoose.Types.ObjectId.isValid(tenantId)) {
-      return res.status(400).json({ success: false, message: 'Invalid Tenant ID format.' });
+      return res
+        .status(400)
+        .json({ success: false, message: 'Invalid Tenant ID format.' });
     }
 
     // Find the assignment for the given tenantId and populate complete HCM details
-    const assignment = await hcmAssignedToTenant.findOne({ tenantId: tenantId, companyId })
+    const assignment = await hcmAssignedToTenant
+      .findOne({ tenantId: tenantId, companyId })
       .populate({
         path: 'hcmIds',
-        model: 'users' // Fetch all fields for each user
+        model: 'users', // Fetch all fields for each user
       });
 
     if (!assignment) {
-      return res.status(300).json({ success: false, message: 'No HCMs assigned to this tenant.' });
+      return res
+        .status(300)
+        .json({ success: false, message: 'No HCMs assigned to this tenant.' });
     }
 
     // Return the complete user details
     return res.status(200).json({
       success: true,
-      message: "HCMs assigned to tenant fetched successfully",
-      response: assignment.hcmIds
+      message: 'HCMs assigned to tenant fetched successfully',
+      response: assignment.hcmIds,
     });
   } catch (error) {
     console.error('Error fetching assigned HCMs:', error);
     return res.status(500).json({
       success: false,
       message: 'Error fetching assigned HCMs.',
-      error: error.message || error
+      error: error.message || error,
     });
   }
 };
@@ -1013,16 +1249,35 @@ export const getTenantInfoById = async (req, res) => {
   try {
     const { tenantInfoId, companyId } = req.body;
     const tenantInformation = await tenantInfo.findById(tenantInfoId);
-    return res.status(200).json({ success: true, message: "Tenant info fetched successfully", response: tenantInformation });
+    return res.status(200).json({
+      success: true,
+      message: 'Tenant info fetched successfully',
+      response: tenantInformation,
+    });
   } catch (error) {
     console.error('Error in getTenantInfoById:', error);
-    return res.status(500).json({ success: false, message: 'Error fetching tenant info', error: error.message || error });
+    return res.status(500).json({
+      success: false,
+      message: 'Error fetching tenant info',
+      error: error.message || error,
+    });
   }
-}
+};
 
-export const createOrUpdateServiceTracking = async (tenantId, hcmId, serviceType, unitsToAdd, durationInHours, companyId) => {
+export const createOrUpdateServiceTracking = async (
+  tenantId,
+  hcmId,
+  serviceType,
+  unitsToAdd,
+  durationInHours,
+  companyId
+) => {
   // Find the service tracking record
-  let serviceTracking = await ServiceTracking.findOne({ tenantId, serviceType, companyId });
+  let serviceTracking = await ServiceTracking.findOne({
+    tenantId,
+    serviceType,
+    companyId,
+  });
 
   if (!serviceTracking) {
     // Create a new service tracking record with default values
@@ -1041,7 +1296,9 @@ export const createOrUpdateServiceTracking = async (tenantId, hcmId, serviceType
       scheduledUnits: unitsToAdd,
       workedUnits: unitsToAdd,
       workedHours: durationInHours,
-      hcmIds: [{ hcmId, workedUnits: unitsToAdd, workedHours: durationInHours }]
+      hcmIds: [
+        { hcmId, workedUnits: unitsToAdd, workedHours: durationInHours },
+      ],
     });
 
     await serviceTracking.save();
@@ -1053,12 +1310,17 @@ export const createOrUpdateServiceTracking = async (tenantId, hcmId, serviceType
     serviceTracking.workedHours += durationInHours;
 
     // Merge existing hcmIds with the new one
-    const hcmEntry = serviceTracking.hcmIds.length === 1 ? serviceTracking.hcmIds[0] : null;
+    const hcmEntry =
+      serviceTracking.hcmIds.length === 1 ? serviceTracking.hcmIds[0] : null;
     if (hcmEntry && hcmEntry.hcmId === hcmId) {
       hcmEntry.workedUnits += unitsToAdd;
       hcmEntry.workedHours += durationInHours;
     } else {
-      serviceTracking.hcmIds.push({ hcmId, workedUnits: unitsToAdd, workedHours: durationInHours });
+      serviceTracking.hcmIds.push({
+        hcmId,
+        workedUnits: unitsToAdd,
+        workedHours: durationInHours,
+      });
     }
 
     await serviceTracking.save();
@@ -1069,7 +1331,6 @@ export const addTenantNote = async (req, res) => {
   try {
     const { tenantId, content, notedBy, title } = req.body;
 
-
     // Find the tenant notes document
     let TenantNotes = await tenantNotes.findOne({ tenantId });
 
@@ -1077,13 +1338,15 @@ export const addTenantNote = async (req, res) => {
       // If no document exists, create a new one
       TenantNotes = new tenantNotes({
         tenantId,
-        notes: [{
-          noteId: 1,
-          content,
-          notedBy,
-          title
-        }],
-        noteCounter: 1
+        notes: [
+          {
+            noteId: 1,
+            content,
+            notedBy,
+            title,
+          },
+        ],
+        noteCounter: 1,
       });
     } else {
       // Increment the note counter and add the new note
@@ -1092,7 +1355,7 @@ export const addTenantNote = async (req, res) => {
         noteId: newNoteId,
         content,
         notedBy,
-        title
+        title,
       });
       TenantNotes.noteCounter = newNoteId;
     }
@@ -1103,15 +1366,15 @@ export const addTenantNote = async (req, res) => {
       success: true,
       message: 'Note added successfully',
       response: {
-        "tenantNotes": TenantNotes
-      }
+        tenantNotes: TenantNotes,
+      },
     });
   } catch (error) {
     console.error('Error adding note:', error);
     res.status(500).json({
       success: false,
       message: 'Internal server error',
-      response: error.message
+      response: error.message,
     });
   }
 };
@@ -1119,38 +1382,45 @@ export const addTenantNote = async (req, res) => {
 export const getTenantNotes = async (req, res) => {
   try {
     const { tenantId } = req.body;
-    const tenantNotesDocument = await tenantNotes.findOne({ tenantId }).populate({
-      path: 'notes.notedBy',
-      select: '-accountSetup -passwordChangedAt'
-    });
+    const tenantNotesDocument = await tenantNotes
+      .findOne({ tenantId })
+      .populate({
+        path: 'notes.notedBy',
+        select: '-accountSetup -passwordChangedAt',
+      });
 
     if (!tenantNotesDocument) {
-      return res.status(404).json({ success: false, message: "Tenant notes not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: 'Tenant notes not found' });
     }
 
     // Refine the response to exclude _id, tenantId, noteCounter, and _id inside notes
-    const refinedNotes = tenantNotesDocument.notes.map(note => ({
+    const refinedNotes = tenantNotesDocument.notes.map((note) => ({
       noteId: note.noteId,
       content: note.content,
       title: note.title,
       notedBy: note.notedBy,
       createdAt: note.createdAt,
-      updatedAt: note.updatedAt
+      updatedAt: note.updatedAt,
     }));
 
     return res.status(200).json({
       success: true,
-      message: "Tenant notes fetched successfully",
+      message: 'Tenant notes fetched successfully',
       response: {
-        tenantNotes: refinedNotes
-      }
+        tenantNotes: refinedNotes,
+      },
     });
   } catch (error) {
     console.error('Error fetching tenant notes:', error);
-    res.status(500).json({ success: false, message: 'Error fetching tenant notes', error: error.message || error });
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching tenant notes',
+      error: error.message || error,
+    });
   }
 };
-
 
 export const deleteTenantNote = async (req, res) => {
   try {
@@ -1160,15 +1430,21 @@ export const deleteTenantNote = async (req, res) => {
     const TenantNotes = await tenantNotes.findOne({ tenantId });
 
     if (!TenantNotes) {
-      return res.status(400).json({ success: false, message: "Tenant notes not found" });
+      return res
+        .status(400)
+        .json({ success: false, message: 'Tenant notes not found' });
     }
 
     // Find the index of the note to be deleted
-    const noteIndex = TenantNotes.notes.findIndex(note => note.noteId === noteId);
+    const noteIndex = TenantNotes.notes.findIndex(
+      (note) => note.noteId === noteId
+    );
 
     // Check if the note exists
     if (noteIndex === -1) {
-      return res.status(400).json({ success: false, message: "Note not found" });
+      return res
+        .status(400)
+        .json({ success: false, message: 'Note not found' });
     }
 
     // Remove the note from the array
@@ -1179,14 +1455,18 @@ export const deleteTenantNote = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "Tenant note deleted successfully",
+      message: 'Tenant note deleted successfully',
       response: {
-        "deleted Note": TenantNotes
-      }
+        'deleted Note': TenantNotes,
+      },
     });
   } catch (error) {
     console.error('Error deleting tenant note:', error);
-    return res.status(500).json({ success: false, message: 'Internal server error', response: error.message });
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      response: error.message,
+    });
   }
 };
 
@@ -1201,15 +1481,21 @@ export const updateTenantNote = async (req, res) => {
     const TenantNotes = await tenantNotes.findOne({ tenantId });
 
     if (!TenantNotes) {
-      return res.status(400).json({ success: false, message: "Tenant notes not found" });
+      return res
+        .status(400)
+        .json({ success: false, message: 'Tenant notes not found' });
     }
 
     // Find the index of the note to be updated
-    const noteIndex = TenantNotes.notes.findIndex(note => note.noteId === noteIdNumber);
+    const noteIndex = TenantNotes.notes.findIndex(
+      (note) => note.noteId === noteIdNumber
+    );
 
     // Check if the note exists
     if (noteIndex === -1) {
-      return res.status(400).json({ success: false, message: "Note not found" });
+      return res
+        .status(400)
+        .json({ success: false, message: 'Note not found' });
     }
 
     // Retrieve the existing note
@@ -1225,29 +1511,38 @@ export const updateTenantNote = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "Tenant note updated successfully",
+      message: 'Tenant note updated successfully',
       response: {
-        "updated Note": existingNote
-      }
+        'updated Note': existingNote,
+      },
     });
   } catch (error) {
     console.error('Error updating tenant note:', error);
-    return res.status(500).json({ success: false, message: 'Internal server error', response: error.message });
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      response: error.message,
+    });
   }
 };
-
 
 export const tenantsRunningOutOfUnits = async (req, res) => {
   try {
     const { companyId } = req.params;
-    const tenants = await ServiceTracking.find({ companyId, unitsRemaining: { $lt: 100 } });
+    const tenants = await ServiceTracking.find({
+      companyId,
+      unitsRemaining: { $lt: 100 },
+    });
     res.status(200).json({
-      success: true, message: "Tenants running out of units fetched successfully", response: {
+      success: true,
+      message: 'Tenants running out of units fetched successfully',
+      response: {
         count: tenants.length,
-      }
+      },
     });
   } catch (error) {
-    res.status(400).json({ success: false, message: error.message, response: error });
+    res
+      .status(400)
+      .json({ success: false, message: error.message, response: error });
   }
-}
-
+};
