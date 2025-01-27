@@ -907,15 +907,13 @@ export const getAllTenants = async (req, res) => {
     const tenants = await users.find({ role: 0, companyId: companyObjectId });
 
     const tenantsRecords = [];
-    const cities = [];
-    const insurance = [];
+    const cities = new Set();
 
     for (const tenant of tenants) {
       const tenantInfoRecord = await tenantInfo.findOne({
         _id: tenant.info_id,
       });
       cities.push(tenantInfoRecord.address.city);
-      insurance.push(tenantInfoRecord.admissionInfo.insurance);
 
       const services = [];
       const serviceTracking = await ServiceTracking.find({
