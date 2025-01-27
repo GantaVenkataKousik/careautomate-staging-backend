@@ -1227,7 +1227,7 @@ export const getAssignedHcmsToTenant = async (req, res) => {
 
     if (!assignment) {
       return res
-        .status(300)
+        .status(200)
         .json({ success: false, message: 'No HCMs assigned to this tenant.' });
     }
 
