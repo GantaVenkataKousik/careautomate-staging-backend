@@ -913,15 +913,16 @@ export const getAllTenants = async (req, res) => {
       const tenantInfoRecord = await tenantInfo.findOne({
         _id: tenant.info_id,
       });
-      cities.push(tenantInfoRecord.address.city);
+      const city = tenantInfoRecord.address.city;
+      cities.add(tenantInfoRecord.address.city);
 
-      const services = [];
+      const services = new Set();
       const serviceTracking = await ServiceTracking.find({
         tenantId: tenant._id,
       });
 
       for (const service of serviceTracking) {
-        services.push(service.serviceType);
+        services.add(service.serviceType);
       }
       tenantsRecords.push({
         id: tenant._id,
@@ -938,8 +939,7 @@ export const getAllTenants = async (req, res) => {
       message: 'Tenants fetched successfully',
       response: {
         tenants: tenantsRecords,
-        cities,
-        insurance,
+        cities
       },
     });
   } catch (error) {
