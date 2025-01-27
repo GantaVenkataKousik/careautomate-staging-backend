@@ -52,7 +52,7 @@ export const createTenant = async (req, res) => {
       info_id: savedInfo._id,
       role: 0,
       companyId,
-      companyName: companyRecord.companyName
+      companyName: companyRecord.companyName,
     });
     await newUser.save();
 
@@ -319,17 +319,17 @@ export const updateTenant = async (req, res) => {
       if (updatedTenantInfo.personalInfo?.firstName)
         nameParts.push(
           updatedTenantInfo.personalInfo?.firstName ||
-          existingUser.personalInfo?.firstName
+            existingUser.personalInfo?.firstName
         );
       if (updatedTenantInfo.personalInfo?.middleName)
         nameParts.push(
           updatedTenantInfo.personalInfo?.middleName ||
-          existingUser.personalInfo?.middleName
+            existingUser.personalInfo?.middleName
         );
       if (updatedTenantInfo.personalInfo?.lastName)
         nameParts.push(
           updatedTenantInfo.personalInfo?.lastName ||
-          existingUser.personalInfo?.lastName
+            existingUser.personalInfo?.lastName
         );
       const name = nameParts.join(' ');
 
@@ -448,7 +448,7 @@ export const assignServicesAndDocuments = async (req, res) => {
       unitsRemaining,
       totalUnits,
       billRate,
-      companyId
+      companyId,
     } = serviceData;
 
     // Validate required fields
@@ -931,15 +931,14 @@ export const getAllTenants = async (req, res) => {
         phoneNo: tenant.phoneNo,
         tenantInfo: tenantInfoRecord,
         services: services,
-
       });
     }
     return res.status(200).json({
       success: true,
       message: 'Tenants fetched successfully',
       response: {
-        tenants: tenantsRecords,
-        cities
+        tenantsRecords: tenantsRecords,
+        cities,
       },
     });
   } catch (error) {
@@ -980,7 +979,7 @@ export const getTenantChartInfo = async (req, res) => {
   try {
     // Find all tenants with role 0
     const tenants = await users.find({ role: 0, companyId });
-    console.log(tenants)
+    console.log(tenants);
     // Initialize the data structure for the response
     const data = {};
 
@@ -1119,8 +1118,9 @@ function createReassessmentDetail(tenant, diffDays) {
     daysLeft: diffDays,
     period:
       tenant.startDate && tenant.endDate
-        ? `${tenant.startDate.toISOString().split('T')[0]} to ${tenant.endDate.toISOString().split('T')[0]
-        }`
+        ? `${tenant.startDate.toISOString().split('T')[0]} to ${
+            tenant.endDate.toISOString().split('T')[0]
+          }`
         : 'Undefined',
     hcmDetails: tenant.hcmIds.map((hcm) => ({
       hcmId: hcm.hcmId ? hcm.hcmId._id : 'Unknown HCM ID',
