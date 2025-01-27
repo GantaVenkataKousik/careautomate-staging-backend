@@ -930,7 +930,7 @@ export const getAllTenants = async (req, res) => {
         email: tenant.email,
         phoneNo: tenant.phoneNo,
         tenantInfo: tenantInfoRecord,
-        services: services,
+        services: Array.from(services),
       });
     }
     return res.status(200).json({
