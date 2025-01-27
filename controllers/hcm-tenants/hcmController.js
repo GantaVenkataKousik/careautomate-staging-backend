@@ -97,10 +97,10 @@ const getHcms = async (req, res) => {
   try {
     const hcms = await users.find({ role: 1, companyId: companyObjectId });
     const hcmsRecords = [];
-    const cities = [];
+    const cities = new Set();
     for (const hcm of hcms) {
       const hcmInfoRecord = await hcmInfo.findOne({ _id: hcm.info_id });
-      cities.push(hcmInfoRecord.addressInfo.city);
+      cities.add(hcmInfoRecord.addressInfo.city);
 
       hcmsRecords.push({
         id: hcm._id,

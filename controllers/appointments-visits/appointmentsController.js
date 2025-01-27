@@ -360,10 +360,6 @@ export const createAppointment = async (req, res) => {
             appointment,
             companyId
         } = appointmentData;
-        // Validate that hcmId and tenantId are valid ObjectIds
-        if (!mongoose.Types.ObjectId.isValid(appointment.hcmId) || !mongoose.Types.ObjectId.isValid(appointment.tenantId)) {
-            return res.status(400).json({ success: false, message: "Invalid hcmId or tenantId format" });
-        }
 
         // Validate required fields
         if (!appointment.tenantId || !appointment.hcmId || !appointment.date || !appointment.startTime || !appointment.endTime ||
