@@ -397,12 +397,6 @@ export const createAppointment = async (req, res) => {
                 model: 'causers'
             });
 
-        const formattedResponse = {
-            ...populatedAppointment.toObject(),
-            hcmDetails: populatedAppointment.hcmId,
-            tenantDetails: populatedAppointment.tenantId
-        };
-
         // Parse startTime and endTime as Date objects
         const appointmentStartTime = new Date(appointment.startTime);
         const appointmentEndTime = new Date(appointment.endTime);
@@ -504,13 +498,12 @@ export const createAppointment = async (req, res) => {
             success: true,
             message: "Appointment created successfully",
             response: {
-                appointment: formattedResponse,
+                appointment: populatedAppointment,
                 serviceTracking: serviceTrackingInfo
             }
         });
 
     } catch (error) {
-        console.error('Error in createSchedule:', error);
         res.status(500).json({
             success: false,
             message: error.message || "Error creating schedule"
