@@ -39,14 +39,15 @@ export const planUsage = async (req, res) => {
 
     const response = await Promise.all(serviceTrackings.map(async serviceTracking => {
       const assignedHCMs = await Promise.all(serviceTracking.hcmIds.map(async hcm => {
-        const hcmInfoRecord = await hcmInfo.findById(hcm.hcmId.info_id).select('personalInfo.firstName personalInfo.lastName contactInfo.phoneNumber loginInfo.email').lean();
+        const hcmInfoRecord = await users.findById(hcm.hcmId).select('name email phoneNo').lean();
         return {
-          hcmId: hcm.hcmId ? hcm.hcmId._id : 'Unknown HCM ID',
-          hcmName: hcm.hcmId ? hcm.hcmId.name : 'Unknown HCM',
+          hcmId: hcm.hcmId._id,
+          hcmName: hcmInfoRecord.name,
+          hcmEmail: hcmInfoRecord.email,
+          hcmPhoneNo: hcmInfoRecord.phoneNo,
           workedHours: hcm.workedHours,
           workedUnits: hcm.workedUnits,
           serviceDetails: hcm.serviceDetails,
-          hcmInfo: hcmInfoRecord
         };
       }));
 

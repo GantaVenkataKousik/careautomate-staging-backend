@@ -126,44 +126,91 @@ export const updateAccountDetails = async (req, res) => {
     const adminIdObject = new mongoose.Types.ObjectId(adminId);
 
     try {
-
         const accountDetailsDocument = await accountSetup.findOne({ adminId: adminIdObject });
 
-        const updatedAccountDetails = {
-            email: accountDetails.email ?? accountDetailsDocument.email,
-            firstName: accountDetails.firstName ?? accountDetailsDocument.firstName,
-            lastName: accountDetails.lastName ?? accountDetailsDocument.lastName,
-            companyName: accountDetails.companyName ?? accountDetailsDocument.companyName,
-            address: accountDetails.address ?? accountDetailsDocument.address,
-            contact: accountDetails.contact ?? accountDetailsDocument.contact,
-            federalTaxId: accountDetails.federalTaxId ?? accountDetailsDocument.federalTaxId,
-            idnpiUmpi: accountDetails.idnpiUmpi ?? accountDetailsDocument.idnpiUmpi,
-            taxonomy: accountDetails.taxonomy ?? accountDetailsDocument.taxonomy,
-        }
         if (!accountDetailsDocument) {
             return res.status(400).json({ success: false, message: "Account details not found" });
         }
-        await accountSetup.findOneAndUpdate({ adminId: adminIdObject }, updatedAccountDetails, { new: true });
+
+        if (accountDetails?.email) {
+            accountDetailsDocument.email = accountDetails.email;
+        }
+        if (accountDetails?.firstName) {
+            accountDetailsDocument.firstName = accountDetails.firstName;
+        }
+        if (accountDetails?.lastName) {
+            accountDetailsDocument.lastName = accountDetails.lastName;
+        }
+        if (accountDetails?.companyName) {
+            accountDetailsDocument.companyName = accountDetails.companyName;
+        }
+        if (accountDetails?.addressLine2) {
+            accountDetailsDocument.address.addressLine2 = accountDetails.addressLine2;
+        }
+        if (accountDetails?.addressLine1) {
+            accountDetailsDocument.address.addressLine1 = accountDetails.addressLine1;
+        }
+        if (accountDetails?.city) {
+            accountDetailsDocument.address.city = accountDetails.city;
+        }
+        if (accountDetails?.state) {
+            accountDetailsDocument.address.state = accountDetails.state;
+        }
+        if (accountDetails?.zipCode) {
+            accountDetailsDocument.address.zipCode = accountDetails.zipCode;
+        }
+        if (accountDetails.officePhoneNumber) {
+            accountDetailsDocument.contact.officePhoneNumber = accountDetails.officePhoneNumber;
+        }
+        if (accountDetails?.cellPhoneNumber) {
+            accountDetailsDocument.contact.cellPhoneNumber = accountDetails.cellPhoneNumber;
+        }
+        if (accountDetails?.primaryEmailAddress) {
+            accountDetailsDocument.contact.primaryEmailAddress = accountDetails.primaryEmailAddress;
+        }
+        if (accountDetails?.alternateEmailAddress) {
+            accountDetailsDocument.contact.alternateEmailAddress = accountDetails.alternateEmailAddress;
+        }
+        if (accountDetails?.federalTaxId) {
+            accountDetailsDocument.federalTaxId = accountDetails.federalTaxId;
+        }
+        if (accountDetails?.idnpiUmpi) {
+            accountDetailsDocument.idnpiUmpi = accountDetails.idnpiUmpi;
+        }
+        if (accountDetails?.taxonomy) {
+            accountDetailsDocument.taxonomy = accountDetails.taxonomy;
+        }
+
+        const updatedAccount = await accountDetailsDocument.save();
+        console.log(updatedAccount);
 
         const userDocument = await Users.findOne({ _id: adminIdObject });
 
         if (!userDocument) {
-            return res.status(400).json({ success: false, message: "Email already exists", response: null });
+            return res.status(400).json({ success: false, message: "User not found", response: null });
         }
-        // Create a new user
-        const fullName = updatedAccountDetails.firstName + (updatedAccountDetails.lastName ? " " + updatedAccountDetails.lastName : "");
-        const user = new Users({
-            name: fullName || userDocument.name,
-            email: updatedAccountDetails.email || userDocument.email,
-            phoneNo: updatedAccountDetails.contact.cellPhoneNumber ?? updatedAccountDetails.contact.officePhoneNumber ?? userDocument.phoneNo,
-        });
 
-        const updatedUser = await Users.findOneAndUpdate({ _id: adminIdObject }, user, { new: true });
+        // Update user details
+        const firstName = accountDetails?.firstName || '';
+        const lastName = accountDetails?.lastName || '';
+        const fullName = (firstName || lastName) ? `${firstName} ${lastName}`.trim() : userDocument.name;
+
+        if (fullName) {
+            userDocument.name = fullName;
+        }
+        if (accountDetails?.email) {
+            userDocument.email = accountDetails.email;
+        }
+        if (accountDetails?.contact?.cellPhoneNumber) {
+            userDocument.phoneNo = accountDetails.contact.cellPhoneNumber;
+        }
+
+        const updatedUser = await userDocument.save();
 
         res.status(200).json({
             success: true,
             message: "Account details updated successfully",
-            response: { "account-details": updatedAccountDetails, "updated-user": updatedUser }
+            response: { "account-details": updatedAccount, "updated-user": updatedUser }
         });
     } catch (error) {
         res.status(500).json({ success: false, message: "An error occurred", error: error.message });

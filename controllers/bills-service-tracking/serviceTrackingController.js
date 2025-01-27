@@ -1,5 +1,4 @@
 import ServiceTracking from '../../models/bills/serviceTracking.js';
-import users from '../../models/account/users.js';
 import hcmInfo from '../../models/hcm-tenants/hcmInfo.js';
 
 export const getUnitsRemaining = async (req, res) => {
@@ -94,23 +93,25 @@ export const planUsage = async (req, res) => {
         const { tenantId } = req.body;
 
         // Fetch all service tracking records for the given tenant ID
-        const serviceTrackings = await ServiceTracking.find({ tenantId, companyId });
-
+        const serviceTrackings = await ServiceTracking.find({ tenantId });
         if (serviceTrackings.length === 0) {
             return res.status(400).json({ success: false, message: "Service tracking data not found for the given tenant ID" });
         }
 
         const response = await Promise.all(serviceTrackings.map(async (serviceTracking) => {
             const hcmDetails = await Promise.all(serviceTracking.hcmIds.map(async (hcmEntry) => {
-                const user = await users.findById(hcmEntry.hcmId);
-                if (!user) return null;
+                const user = await users.findOne({ _id: hcmEntry.hcmId });
 
-                const hcmInfoRecord = await hcmInfo.findById(user.info_id);
                 return {
-                    hcmId: hcmEntry.hcmId,
+                    hcm: {
+                        hcmId: hcmEntry.hcmId,
+                        hcmName: user.name,
+                        hcmEmail: user.email,
+                        hcmPhoneNo: user.phoneNo,
+                    },
                     workedHours: hcmEntry.workedHours,
                     workedUnits: hcmEntry.workedUnits,
-                    hcmInfo: hcmInfoRecord
+                    serviceDetails: hcmEntry.serviceDetails
                 };
             }));
 

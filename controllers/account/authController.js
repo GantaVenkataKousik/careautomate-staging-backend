@@ -41,7 +41,6 @@ export const loginController = async (req, res) => {
             const childAdminAccountDocument = await childAdminAccount.findOne({ _id: user.info_id });
             userResponse.permissions = childAdminAccountDocument.permissions;
 
-            userResponse._id = companyRecord.adminId;
             return res.status(200).json({
                 success: true,
                 message: "Login successful",

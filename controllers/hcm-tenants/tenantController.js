@@ -8,6 +8,8 @@ import TenantHistory from '../../models/hcm-tenants/tenantHistory.js';
 import Visits from '../../models/appointments-visits/visits.js';
 import ServiceTracking from '../../models/bills/serviceTracking.js';
 import tenantNotes from '../../models/hcm-tenants/tenantNotes.js';
+import Company from '../../models/account/company.js';
+
 function generateControlNumber() {
   return String(Math.floor(Math.random() * 1000000)).padStart(6, '0'); // 6-digit control number
 }
@@ -33,6 +35,8 @@ export const createTenant = async (req, res) => {
       });
     }
 
+    const companyRecord = await Company.findOne({ _id: companyId });
+
     // Proceed with creating a new tenant
     const newInfo = new tenantInfo(tenantData);
     const savedInfo = await newInfo.save();
@@ -48,6 +52,7 @@ export const createTenant = async (req, res) => {
       info_id: savedInfo._id,
       role: 0,
       companyId,
+      companyName: companyRecord.companyName
     });
     await newUser.save();
 
@@ -921,21 +926,20 @@ export const getAllTenants = async (req, res) => {
         services.push(service.serviceType);
       }
       tenantsRecords.push({
-        tenant: {
-          id: tenant._id,
-          name: tenant.name,
-          email: tenant.email,
-          phoneNo: tenant.phoneNo,
-          tenantInfo: tenantInfoRecord,
-          services: services,
-        },
+        id: tenant._id,
+        name: tenant.name,
+        email: tenant.email,
+        phoneNo: tenant.phoneNo,
+        tenantInfo: tenantInfoRecord,
+        services: services,
+
       });
     }
     return res.status(200).json({
       success: true,
       message: 'Tenants fetched successfully',
       response: {
-        tenantsRecords,
+        tenants: tenantsRecords,
         cities,
         insurance,
       },
