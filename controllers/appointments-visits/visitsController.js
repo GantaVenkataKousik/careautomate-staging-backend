@@ -146,8 +146,6 @@ export const createVisit = async (req, res) => {
 
             }
             serviceRecord = await serviceTracking.save();
-        } else {
-            return res.status(400).json({ success: false, message: 'Service tracking record not found' });
         }
 
         res.status(200).json({
