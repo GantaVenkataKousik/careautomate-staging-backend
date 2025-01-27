@@ -110,7 +110,6 @@ const getHcms = async (req, res) => {
     for (const hcm of hcms) {
       const hcmInfoRecord = await hcmInfo.findOne({ _id: hcm.info_id });
       cities.add(hcmInfoRecord.addressInfo.city);
-
       hcmsRecords.push({
         id: hcm._id,
         name: hcm.name,
@@ -119,12 +118,13 @@ const getHcms = async (req, res) => {
         hcmData: hcmInfoRecord,
       });
     }
+
     return res.status(200).json({
       success: true,
       message: 'HCMs fetched successfully',
       response: {
         hcmsRecords,
-        cities,
+        cities: Array.from(cities),
       },
     });
   } catch (error) {

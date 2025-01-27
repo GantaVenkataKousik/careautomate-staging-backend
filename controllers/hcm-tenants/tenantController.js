@@ -938,7 +938,7 @@ export const getAllTenants = async (req, res) => {
       message: 'Tenants fetched successfully',
       response: {
         tenantsRecords: tenantsRecords,
-        cities,
+        cities: Array.from(cities),
       },
     });
   } catch (error) {
