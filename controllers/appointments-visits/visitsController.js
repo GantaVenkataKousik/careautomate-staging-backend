@@ -229,11 +229,9 @@ export const updateVisit = async (req, res) => {
         .json({ success: false, message: 'Visit not found' });
     }
     const updatedVisitData = {
-      creatorId:
-        new mongoose.Types.ObjectId(updateData?.creatorId) || visit.creatorId,
-      hcmId: new mongoose.Types.ObjectId(updateData?.hcmId) || visit.hcmId,
-      tenantId:
-        new mongoose.Types.ObjectId(updateData?.tenantId) || visit.tenantId,
+      creatorId: updateData?.creatorId || visit.creatorId,
+      hcmId: updateData?.hcmId || visit.hcmId,
+      tenantId: updateData?.tenantId || visit.tenantId,
       date: updateData?.date || visit.date,
       startTime: updateData?.startTime || visit.startTime,
       endTime: updateData?.endTime || visit.endTime,
