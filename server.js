@@ -22,11 +22,15 @@ import documentRoute from './routes/communication-documents/documentRoute.js';
 import reportsRoute from './routes/reports/reportsRoute.js';
 import accountRoute from './routes/account/accountRoute.js';
 import superAdminRoute from './routes/account/superAdminRoute.js';
+import { generateEDI } from './tasks/generateEdiFile.js';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config();
 
 connectDB();
+
+generateEDI('6796fdd6d5baa7cb88d77e0d');
 
 const app = express();
 app.use(cors({

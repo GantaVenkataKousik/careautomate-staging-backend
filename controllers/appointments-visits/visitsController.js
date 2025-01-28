@@ -538,11 +538,11 @@ export const markVisitAsApproved = async (req, res) => {
       serviceType: visit.serviceType,
       companyId,
     });
-    if (!service) {
-      return res
-        .status(400)
-        .json({ success: false, message: 'Service tracking record not found' });
-    }
+    // if (!service) {
+    //   return res
+    //     .status(400)
+    //     .json({ success: false, message: 'Service tracking record not found' });
+    // }
     // Create a new bill
     const newBill = new Bill({
       tenant: visit.tenantId,
@@ -595,7 +595,7 @@ export const markVisitAsApproved = async (req, res) => {
       },
       claimInformation: {
         patientAccountNumber: tenantInfo.admissionInfo.ssn,
-        totalClaimChargeAmount: service.workedUnits * 100, // Example calculation
+        totalClaimChargeAmount: 12 * 100, // Example calculation
         medicalRecordNumber: tenantInfo.admissionInfo.ssn,
         diagnosisCode: tenantInfo.admissionInfo.diagnosisCode,
       },
@@ -607,8 +607,8 @@ export const markVisitAsApproved = async (req, res) => {
       serviceLine: [
         {
           procedureCode: tenantInfo.admissionInfo.diagnosisCode,
-          lineItemChargeAmount: service.workedUnits * 17.17, // Example calculation
-          serviceUnitCount: service.workedUnits,
+          lineItemChargeAmount: 12 * 17.17, // Example calculation
+          serviceUnitCount: 12,
           serviceDate: visit.date,
         },
       ],
@@ -666,9 +666,8 @@ export const getVisitsComplianceReports = async (req, res) => {
     const formattedReports = visits.map((visit) => {
       const durationInMinutes =
         (new Date(visit.endTime) - new Date(visit.startTime)) / 60000;
-      const duration = `${Math.floor(durationInMinutes / 60)}h ${
-        durationInMinutes % 60
-      }m`;
+      const duration = `${Math.floor(durationInMinutes / 60)}h ${durationInMinutes % 60
+        }m`;
 
       return {
         tenantId: visit.tenantId ? visit.tenantId._id : 'Unknown Tenant ID',

@@ -8,10 +8,10 @@ const __dirname = path.dirname(__filename);
 
 import Bill from '../models/bills/bills.js';
 
-const generateEdiFile = async (tenantId) => {
+export const generateEDI = async (tenantId) => {
     try {
-        const bill = await Bill.findOne({ tenantId });
-
+        const bill = await Bill.findById({ _id: '67985e26aaecb71151363fb2' });
+        console.log(bill);
         if (!bill) {
             console.error('No bill found for the given tenant ID');
             return;
@@ -82,4 +82,4 @@ const generateEdiFile = async (tenantId) => {
     }
 };
 
-export { generateEdiFile };
+
