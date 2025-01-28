@@ -1,12 +1,12 @@
-import users from '../../models/account/users.js';
-import bcrypt from 'bcrypt';
-import HcmAppointments from '../../models/appointments-visits/appointments.js';
-import Document from '../../models/communication-documents/document.js';
-import mongoose from 'mongoose';
-import tenantAssignedtoHcm from '../../models/hcm-tenants/tenantAssignedtoHcm.js';
-import cloudinary from 'cloudinary';
-import hcmInfo from '../../models/hcm-tenants/hcmInfo.js';
-import Visits from '../../models/appointments-visits/visits.js';
+import users from "../../models/account/users.js";
+import bcrypt from "bcrypt";
+import HcmAppointments from "../../models/appointments-visits/appointments.js";
+import Document from "../../models/communication-documents/document.js";
+import mongoose from "mongoose";
+import tenantAssignedtoHcm from "../../models/hcm-tenants/tenantAssignedtoHcm.js";
+import cloudinary from "cloudinary";
+import hcmInfo from "../../models/hcm-tenants/hcmInfo.js";
+import Visits from "../../models/appointments-visits/visits.js";
 
 //HCM Management Routes
 
@@ -16,13 +16,13 @@ const createHcm = async (req, res) => {
     console.log(hcmData);
     const companyObjectId = new mongoose.Types.ObjectId(companyId);
     // Log the incoming data to verify its structure
-    console.log('Received hcmData:', hcmData);
+    console.log("Received hcmData:", hcmData);
 
     // Validate email presence
     if (!hcmData.loginInfo || !hcmData.loginInfo.username) {
       return res
         .status(400)
-        .json({ success: false, message: 'Email is required.' });
+        .json({ success: false, message: "Email is required." });
     }
 
     // Step 1: Check if a user already exists with the same email
@@ -33,7 +33,7 @@ const createHcm = async (req, res) => {
     if (existingUser) {
       return res.status(400).json({
         success: false,
-        message: 'A user with this email already exists.',
+        message: "A user with this email already exists.",
       });
     } else {
       // Step 2: Insert a new info document if no user exists
@@ -67,7 +67,7 @@ const createHcm = async (req, res) => {
       return res.status(200).json({
         success: true,
         message:
-          'HCM data recorded, Info record created, and User created successfully.',
+          "HCM data recorded, Info record created, and User created successfully.",
         response: {
           hcm: hcmRecord,
           hcmInfo: savedInfo,
@@ -77,7 +77,7 @@ const createHcm = async (req, res) => {
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: error.message || 'Error creating HCM data',
+      message: error.message || "Error creating HCM data",
     });
   }
 };
@@ -89,13 +89,13 @@ const getHcm = async (req, res) => {
     const hcmInfoRecord = await hcmInfo.findOne({ _id: hcm.info_id });
     return res.status(200).json({
       success: true,
-      message: 'HCM fetched successfully',
+      message: "HCM fetched successfully",
       response: { hcm, hcmInfoRecord },
     });
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: error.message || 'Error fetching HCM data',
+      message: error.message || "Error fetching HCM data",
     });
   }
 };
@@ -121,7 +121,7 @@ const getHcms = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: 'HCMs fetched successfully',
+      message: "HCMs fetched successfully",
       response: {
         hcmsRecords,
         cities: Array.from(cities),
@@ -130,7 +130,7 @@ const getHcms = async (req, res) => {
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: error.message || 'Error fetching HCMs',
+      message: error.message || "Error fetching HCMs",
     });
   }
 };
@@ -138,17 +138,17 @@ const getHcms = async (req, res) => {
 const updateHcm = async (req, res) => {
   try {
     const requestData =
-      typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+      typeof req.body === "string" ? JSON.parse(req.body) : req.body;
     const { email, hcmData, companyId, updatedById } = requestData;
     const existingUser = await users.findOne({ email });
     if (!existingUser) {
-      return res.status(404).json({ success: false, message: 'HCM not found' });
+      return res.status(404).json({ success: false, message: "HCM not found" });
     }
     const existingInfo = await hcmInfo.findOne({ _id: existingUser.info_id });
     if (!existingInfo) {
       return res
         .status(404)
-        .json({ success: false, message: 'HCM info not found' });
+        .json({ success: false, message: "HCM info not found" });
     }
     const updatedPersonalInfo = {
       firstName:
@@ -235,7 +235,7 @@ const updateHcm = async (req, res) => {
         updatedHcmInfo.personalInfo?.lastName ||
           existingInfo.personalInfo?.lastName
       );
-    const name = nameParts.join(' ');
+    const name = nameParts.join(" ");
 
     const userUpdateData = {};
     if (name) userUpdateData.name = name;
@@ -252,7 +252,7 @@ const updateHcm = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: 'HCM updated successfully',
+      message: "HCM updated successfully",
       response: {
         updatedHcm: updatedUser,
         updatedHcmInfo: updatedHcmInfo,
@@ -261,7 +261,7 @@ const updateHcm = async (req, res) => {
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: error.message || 'Error updating HCM',
+      message: error.message || "Error updating HCM",
     });
   }
 };
@@ -275,7 +275,7 @@ const deleteHcm = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: 'HCM deleted successfully',
+      message: "HCM deleted successfully",
       response: {
         deletedHcm: deletedHcm,
         deletedHcmInfo: deletedHcmInfo,
@@ -284,7 +284,7 @@ const deleteHcm = async (req, res) => {
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: error.message || 'Error deleting HCM',
+      message: error.message || "Error deleting HCM",
     });
   }
 };
@@ -297,7 +297,7 @@ const getHcmInfo = async (req, res) => {
     const hcmInfoRecord = await hcmInfo.findById(hcm.info_id);
     return res.status(200).json({
       success: true,
-      message: 'HCM info fetched successfully',
+      message: "HCM info fetched successfully",
       response: {
         hcmInfo: hcmInfoRecord,
       },
@@ -305,7 +305,7 @@ const getHcmInfo = async (req, res) => {
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: error.message || 'Error fetching HCM info',
+      message: error.message || "Error fetching HCM info",
     });
   }
 };
@@ -322,18 +322,18 @@ const getHcmChartInfo = async (req, res) => {
     hcms.forEach((hcm) => {
       const year = new Date().getFullYear().toString();
       const monthNames = [
-        'Jan',
-        'Feb',
-        'Mar',
-        'Apr',
-        'May',
-        'Jun',
-        'Jul',
-        'Aug',
-        'Sep',
-        'Oct',
-        'Nov',
-        'Dec',
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
       ];
 
       if (hcm.movedOut) {
@@ -362,7 +362,7 @@ const getHcmChartInfo = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: 'HCM chart info fetched successfully',
+      message: "HCM chart info fetched successfully",
       response: data,
     });
   } catch (error) {
@@ -378,7 +378,7 @@ const assignServicesAndDocuments = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(hcmId)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid HCM ID format',
+        message: "Invalid HCM ID format",
       });
     }
 
@@ -387,7 +387,7 @@ const assignServicesAndDocuments = async (req, res) => {
     if (!hcmExists) {
       return res.status(404).json({
         success: false,
-        message: 'HCM not found',
+        message: "HCM not found",
       });
     }
 
@@ -395,7 +395,7 @@ const assignServicesAndDocuments = async (req, res) => {
     if (!services || !Array.isArray(services) || services.length === 0) {
       return res.status(400).json({
         success: false,
-        message: 'Services array is required and cannot be empty',
+        message: "Services array is required and cannot be empty",
       });
     }
 
@@ -411,7 +411,7 @@ const assignServicesAndDocuments = async (req, res) => {
         return res.status(400).json({
           success: false,
           message:
-            'Missing required service fields: serviceType, startDate, endDate, units, and rate are required',
+            "Missing required service fields: serviceType, startDate, endDate, units, and rate are required",
         });
       }
       // Create new service record
@@ -423,8 +423,8 @@ const assignServicesAndDocuments = async (req, res) => {
         units,
         rate,
         document: document,
-        status: 'pending',
-        reviewStatus: 'pending',
+        status: "pending",
+        reviewStatus: "pending",
       });
 
       const savedService = await newService.save();
@@ -433,14 +433,14 @@ const assignServicesAndDocuments = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: 'Services assigned successfully',
+      message: "Services assigned successfully",
       response: savedServices,
     });
   } catch (error) {
-    console.error('Error in assignServicesAndDocuments:', error);
+    console.error("Error in assignServicesAndDocuments:", error);
     res.status(500).json({
       success: false,
-      message: error.message || 'Error assigning services and documents',
+      message: error.message || "Error assigning services and documents",
     });
   }
 };
@@ -450,28 +450,28 @@ export const hcmVisitHistory = async (req, res) => {
     // Find visits for the given tenantId and populate hcm and tenant details
     const visits = await Visits.find({ hcmId })
       .populate({
-        path: 'hcmId',
-        select: '_id name', // Select only the id and name fields
-        model: 'users',
+        path: "hcmId",
+        select: "_id name", // Select only the id and name fields
+        model: "users",
       })
       .populate({
-        path: 'tenantId',
-        select: '_id name', // Select only the id and name fields
-        model: 'users',
+        path: "tenantId",
+        select: "_id name", // Select only the id and name fields
+        model: "users",
       })
-      .select('serviceType date startTime endTime status'); // Select only the specified fields
+      .select("serviceType date startTime endTime status"); // Select only the specified fields
 
     // Sort visits to find the most recent approved and rejected
     const recentApprovedVisit =
       visits
-        .filter((visit) => visit.status === 'approved' && visit.timeOfApproval)
+        .filter((visit) => visit.status === "approved" && visit.timeOfApproval)
         .sort(
           (a, b) => new Date(b.timeOfApproval) - new Date(a.timeOfApproval)
         )[0] || null;
 
     const recentRejectedVisit =
       visits
-        .filter((visit) => visit.status === 'rejected' && visit.timeOfRejection)
+        .filter((visit) => visit.status === "rejected" && visit.timeOfRejection)
         .sort(
           (a, b) => new Date(b.timeOfRejection) - new Date(a.timeOfRejection)
         )[0] || null;
@@ -502,7 +502,7 @@ export const hcmVisitHistory = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: 'Visit history fetched successfully',
+      message: "Visit history fetched successfully",
       response: {
         visits: formattedVisits,
         recentApproved: recentApprovedVisit
@@ -542,10 +542,10 @@ export const hcmVisitHistory = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error fetching visit data:', error);
+    console.error("Error fetching visit data:", error);
     res.status(500).json({
       success: false,
-      message: 'An error occurred while fetching visit history data.',
+      message: "An error occurred while fetching visit history data.",
       response: error.message,
     });
   }
@@ -557,7 +557,7 @@ const getServicesAndDocuments = async (req, res) => {
     if (!hcmId) {
       return res.status(400).json({
         success: false,
-        message: 'HCM ID is required',
+        message: "HCM ID is required",
       });
     }
 
@@ -567,20 +567,20 @@ const getServicesAndDocuments = async (req, res) => {
     if (!services || services.length === 0) {
       return res.status(404).json({
         success: false,
-        message: 'No services found for this HCM',
+        message: "No services found for this HCM",
       });
     }
 
     res.status(200).json({
       success: true,
-      message: 'Services fetched successfully',
+      message: "Services fetched successfully",
       response: services,
     });
   } catch (error) {
     console.error(error);
     res.status(500).json({
       success: false,
-      message: error.message || 'Error fetching services',
+      message: error.message || "Error fetching services",
     });
   }
 };
@@ -612,7 +612,7 @@ const createSchedule = async (req, res) => {
       return res.status(400).json({
         success: false,
         message:
-          'hcmId, tenantId, serviceType, date, startTime, and endTime are required.',
+          "hcmId, tenantId, serviceType, date, startTime, and endTime are required.",
         response: null,
       });
     }
@@ -625,7 +625,7 @@ const createSchedule = async (req, res) => {
     if (scheduleStartTime >= scheduleEndTime) {
       return res.status(400).json({
         success: false,
-        message: 'Start time must be before end time.',
+        message: "Start time must be before end time.",
         response: null,
       });
     }
@@ -651,14 +651,14 @@ const createSchedule = async (req, res) => {
       savedAppointment._id
     )
       .populate({
-        path: 'hcmId',
-        select: 'name email phoneNo',
-        model: 'users',
+        path: "hcmId",
+        select: "name email phoneNo",
+        model: "users",
       })
       .populate({
-        path: 'tenantId',
-        select: 'name email phoneNo',
-        model: 'users',
+        path: "tenantId",
+        select: "name email phoneNo",
+        model: "users",
       });
 
     // Format the response to include user details
@@ -670,14 +670,14 @@ const createSchedule = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: 'Appointment created successfully',
+      message: "Appointment created successfully",
       response: formattedResponse,
     });
   } catch (error) {
-    console.error('Error in createSchedule:', error);
+    console.error("Error in createSchedule:", error);
     res.status(500).json({
       success: false,
-      message: error.message || 'Error creating appointment',
+      message: error.message || "Error creating appointment",
     });
   }
 };
@@ -689,7 +689,7 @@ const getAppointments = async (req, res) => {
     if (!hcmId) {
       return res.status(400).json({
         success: false,
-        message: 'HCM ID is required',
+        message: "HCM ID is required",
       });
     }
 
@@ -697,7 +697,7 @@ const getAppointments = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(hcmId)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid HCM ID format',
+        message: "Invalid HCM ID format",
       });
     }
 
@@ -706,21 +706,21 @@ const getAppointments = async (req, res) => {
     if (!hcm) {
       return res.status(404).json({
         success: false,
-        message: 'HCM not found',
+        message: "HCM not found",
       });
     }
 
     // Fetch appointments with populated user details
     const appointments = await HcmAppointments.find({ hcmId })
       .populate({
-        path: 'hcmId',
-        select: 'name email phoneNo',
-        model: 'users',
+        path: "hcmId",
+        select: "name email phoneNo",
+        model: "users",
       })
       .populate({
-        path: 'tenantId',
-        select: 'name email phoneNo',
-        model: 'users',
+        path: "tenantId",
+        select: "name email phoneNo",
+        model: "users",
       })
       .sort({ date: 1, startTime: 1 }); // Sort by date and time ascending
 
@@ -733,14 +733,14 @@ const getAppointments = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: 'Appointments fetched successfully',
+      message: "Appointments fetched successfully",
       response: formattedAppointments,
     });
   } catch (error) {
-    console.error('Error in getAppointments:', error);
+    console.error("Error in getAppointments:", error);
     res.status(500).json({
       success: false,
-      message: error.message || 'Error fetching appointments',
+      message: error.message || "Error fetching appointments",
     });
   }
 };
@@ -753,7 +753,7 @@ const uploadDocument = async (req, res) => {
     if (!file) {
       return res.status(400).json({
         success: false,
-        message: 'No file uploaded',
+        message: "No file uploaded",
       });
     }
 
@@ -761,7 +761,7 @@ const uploadDocument = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(hcmId)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid HCM ID format',
+        message: "Invalid HCM ID format",
       });
     }
 
@@ -770,20 +770,20 @@ const uploadDocument = async (req, res) => {
     if (!hcm) {
       return res.status(404).json({
         success: false,
-        message: 'HCM not found',
+        message: "HCM not found",
       });
     }
 
     // Convert the file buffer to base64
-    const fileStr = file.buffer.toString('base64');
+    const fileStr = file.buffer.toString("base64");
     const fileType = file.mimetype;
 
     // Upload to Cloudinary
     const uploadResponse = await cloudinary.uploader.upload(
       `data:${fileType};base64,${fileStr}`,
       {
-        folder: 'hcm-documents', // Different folder for HCM documents
-        resource_type: 'auto', // Automatically detect file type
+        folder: "hcm-documents", // Different folder for HCM documents
+        resource_type: "auto", // Automatically detect file type
       }
     );
 
@@ -804,7 +804,7 @@ const uploadDocument = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: 'Document uploaded successfully',
+      message: "Document uploaded successfully",
       response: {
         _id: savedDocument._id,
         fileName: savedDocument.fileName,
@@ -813,14 +813,14 @@ const uploadDocument = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error in uploadDocument:', error);
+    console.error("Error in uploadDocument:", error);
     return res.status(500).json({
       success: false,
-      message: 'Error uploading document',
+      message: "Error uploading document",
       error:
-        process.env.NODE_ENV === 'development'
+        process.env.NODE_ENV === "development"
           ? error.message
-          : 'Upload failed',
+          : "Upload failed",
     });
   }
 };
@@ -833,7 +833,7 @@ const fetchDocuments = async (req, res) => {
     if (!hcmId) {
       return res.status(400).json({
         success: false,
-        message: 'HCM ID is required',
+        message: "HCM ID is required",
       });
     }
 
@@ -841,7 +841,7 @@ const fetchDocuments = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(hcmId)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid HCM ID format',
+        message: "Invalid HCM ID format",
       });
     }
 
@@ -850,16 +850,16 @@ const fetchDocuments = async (req, res) => {
     if (!hcm) {
       return res.status(404).json({
         success: false,
-        message: 'HCM not found',
+        message: "HCM not found",
       });
     }
 
     // Find all documents for this HCM with populated HCM details
     const documents = await Document.find({ hcmId })
       .populate({
-        path: 'hcmId',
-        select: 'name email phoneNo',
-        model: 'users',
+        path: "hcmId",
+        select: "name email phoneNo",
+        model: "users",
       })
       .sort({ createdAt: -1 }); // Sort by newest first
 
@@ -871,14 +871,14 @@ const fetchDocuments = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: 'Documents fetched successfully',
+      message: "Documents fetched successfully",
       documents: formattedDocuments,
     });
   } catch (error) {
-    console.error('Error in fetchDocuments:', error);
+    console.error("Error in fetchDocuments:", error);
     res.status(500).json({
       success: false,
-      message: error.message || 'Error fetching documents',
+      message: error.message || "Error fetching documents",
     });
   }
 };
@@ -890,7 +890,7 @@ const updateAppointmentStatus = async (req, res) => {
     if (!appointmentId) {
       return res.status(400).json({
         success: false,
-        message: 'Appointment ID is required',
+        message: "Appointment ID is required",
       });
     }
 
@@ -906,20 +906,20 @@ const updateAppointmentStatus = async (req, res) => {
     if (!updatedAppointment) {
       return res.status(404).json({
         success: false,
-        message: 'Appointment not found',
+        message: "Appointment not found",
       });
     }
 
     res.status(200).json({
       success: true,
-      message: 'Appointment status updated successfully',
+      message: "Appointment status updated successfully",
       response: updatedAppointment,
     });
   } catch (error) {
     console.error(error);
     res.status(500).json({
       success: false,
-      message: error.message || 'Error updating appointment status',
+      message: error.message || "Error updating appointment status",
     });
   }
 };
@@ -933,7 +933,7 @@ const updateServiceStatus = async (req, res) => {
     if (!serviceId) {
       return res.status(400).json({
         success: false,
-        message: 'Service ID is required',
+        message: "Service ID is required",
       });
     }
 
@@ -941,7 +941,7 @@ const updateServiceStatus = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(serviceId)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid service ID format',
+        message: "Invalid service ID format",
       });
     }
 
@@ -949,29 +949,29 @@ const updateServiceStatus = async (req, res) => {
     if (!status && !reviewStatus) {
       return res.status(400).json({
         success: false,
-        message: 'Either status or reviewStatus must be provided',
+        message: "Either status or reviewStatus must be provided",
       });
     }
 
     // Validate status values if provided
     if (
       status &&
-      !['pending', 'active', 'completed', 'cancelled'].includes(status)
+      !["pending", "active", "completed", "cancelled"].includes(status)
     ) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid status value',
+        message: "Invalid status value",
       });
     }
 
     // Validate reviewStatus values if provided
     if (
       reviewStatus &&
-      !['pending', 'approved', 'rejected'].includes(reviewStatus)
+      !["pending", "approved", "rejected"].includes(reviewStatus)
     ) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid reviewStatus value',
+        message: "Invalid reviewStatus value",
       });
     }
 
@@ -979,7 +979,7 @@ const updateServiceStatus = async (req, res) => {
     if (!service) {
       return res.status(404).json({
         success: false,
-        message: 'Service not found',
+        message: "Service not found",
       });
     }
 
@@ -990,14 +990,14 @@ const updateServiceStatus = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: 'Service status updated successfully',
+      message: "Service status updated successfully",
       response: updatedService,
     });
   } catch (error) {
-    console.error('Error in updateServiceStatus:', error);
+    console.error("Error in updateServiceStatus:", error);
     res.status(500).json({
       success: false,
-      message: error.message || 'Error updating service status',
+      message: error.message || "Error updating service status",
     });
   }
 };
@@ -1005,21 +1005,46 @@ const updateServiceStatus = async (req, res) => {
 const getAllHcms = async (req, res) => {
   try {
     // Find all users with role 1 (HCMs) and select only _id and name fields
-    const hcms = await users.find({ role: 1 }).select('_id name').lean();
+    const hcms = await users.find({ role: 1 }).select("_id name").lean();
 
     return res.status(200).json({
       success: true,
-      message: 'HCMs fetched successfully',
+      message: "HCMs fetched successfully",
       response: hcms,
     });
   } catch (error) {
-    console.error('Error in getAllHcms:', error);
+    console.error("Error in getAllHcms:", error);
     return res.status(500).json({
       success: false,
-      message: 'Internal server error while fetching HCMs',
+      message: "Internal server error while fetching HCMs",
     });
   }
 };
+
+const getHCMNamesByCompany = async (req, res) => {
+  const { companyId } = req.params;
+  const companyObjectId = new mongoose.Types.ObjectId(companyId);
+
+  try {
+    // Fetch tenants with only the required fields (name and _id)
+    const hcms = await users
+      .find({ role: 1, companyId: companyObjectId })
+      .select("_id name");
+
+    return res.status(200).json({
+      success: true,
+      message: "HCM names and IDs fetched successfully",
+      response: hcms,
+    });
+  } catch (error) {
+    console.error("Error in getHCMNamesAndIds:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error while fetching HCM names and IDs",
+    });
+  }
+};
+
 const getAssignedTenantsToHcm = async (req, res) => {
   const { hcmId } = req.body;
 
@@ -1028,39 +1053,39 @@ const getAssignedTenantsToHcm = async (req, res) => {
     if (!hcmId) {
       return res
         .status(400)
-        .json({ success: false, message: 'HCM ID is required.' });
+        .json({ success: false, message: "HCM ID is required." });
     }
 
     // Validate hcmId format
     if (!mongoose.Types.ObjectId.isValid(hcmId)) {
       return res
         .status(400)
-        .json({ success: false, message: 'Invalid HCM ID format.' });
+        .json({ success: false, message: "Invalid HCM ID format." });
     }
 
     // Find the assignment for the given hcmId and populate complete tenant details
     const assignment = await tenantAssignedtoHcm.findOne({ hcmId }).populate({
-      path: 'tenantIds',
-      model: 'causers', // Fetch all fields for each user
+      path: "tenantIds",
+      model: "causers", // Fetch all fields for each user
     });
 
     if (!assignment) {
       return res
         .status(200)
-        .json({ success: false, message: 'No tenants assigned to this HCM.' });
+        .json({ success: false, message: "No tenants assigned to this HCM." });
     }
 
     // Return the complete user details
     return res.status(200).json({
       success: true,
-      message: 'Tenants assigned to HCM fetched successfully',
+      message: "Tenants assigned to HCM fetched successfully",
       response: assignment.tenantIds,
     });
   } catch (error) {
-    console.error('Error fetching assigned tenants:', error);
+    console.error("Error fetching assigned tenants:", error);
     return res.status(500).json({
       success: false,
-      message: 'Error fetching assigned tenants.',
+      message: "Error fetching assigned tenants.",
       error: error.message || error,
     });
   }
@@ -1074,7 +1099,7 @@ const assignTenantsToHcm = async (req, res) => {
     if (!hcmId || !tenantIds || !Array.isArray(tenantIds)) {
       return res.status(400).json({
         success: false,
-        message: 'HCM ID and an array of Tenant IDs are required',
+        message: "HCM ID and an array of Tenant IDs are required",
       });
     }
 
@@ -1082,7 +1107,7 @@ const assignTenantsToHcm = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(hcmId)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid HCM ID format',
+        message: "Invalid HCM ID format",
       });
     }
 
@@ -1117,15 +1142,15 @@ const assignTenantsToHcm = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: 'Tenants assigned to HCM successfully',
+      message: "Tenants assigned to HCM successfully",
       response: assignment,
     });
   } catch (error) {
-    console.error('Error in assignTenantsToHcm:', error);
+    console.error("Error in assignTenantsToHcm:", error);
     return res.status(500).json({
       success: false,
-      message: 'Error processing tenant assignment',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+      message: "Error processing tenant assignment",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
     });
   }
 };
@@ -1143,6 +1168,7 @@ export {
   fetchDocuments,
   updateAppointmentStatus,
   getAllHcms,
+  getHCMNamesByCompany,
   getAssignedTenantsToHcm,
   getHcmInfo,
   assignTenantsToHcm,
