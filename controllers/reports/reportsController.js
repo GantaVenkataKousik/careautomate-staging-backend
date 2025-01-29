@@ -127,36 +127,92 @@ const getTenantVisitComplianceReports = async (req, res) => {
         model: 'causers',
       });
 
-    const formattedReports = visits.map((visit) => {
-      const durationInMinutes =
-        (new Date(visit.endTime) - new Date(visit.startTime)) / 60000;
-      const duration = `${Math.floor(durationInMinutes / 60)}h ${
-        durationInMinutes % 60
-      }m`;
+    // Grouping visits by Tenant, HCM, and Service Type
+    const groupedReports = {};
+
+    visits.forEach((visit) => {
+      const tenantName = visit.tenantId
+        ? visit.tenantId.name
+        : 'Unknown Tenant';
+      const hcmName = visit.hcmId ? visit.hcmId.name : 'Unknown HCM';
+      const serviceType = visit.serviceType || 'Unknown Service';
+      const key = `${tenantName}-${hcmName}-${serviceType}`;
+
+      if (!groupedReports[key]) {
+        groupedReports[key] = {
+          tenantName,
+          assignedHCM: hcmName,
+          serviceType,
+          startDate: visit.date,
+          endDate: visit.date,
+          methodOfVisitCount: { 'in-person': 0, remote: 0, indirect: 0 },
+          totalVisits: 0,
+          totalMileage: 0, // Initialize total mileage
+        };
+      }
+
+      // Update start and end date range
+      groupedReports[key].startDate = new Date(
+        Math.min(new Date(groupedReports[key].startDate), new Date(visit.date))
+      );
+      groupedReports[key].endDate = new Date(
+        Math.max(new Date(groupedReports[key].endDate), new Date(visit.date))
+      );
+
+      // Count only valid methods of visit
+      if (['in-person', 'remote', 'indirect'].includes(visit.methodOfContact)) {
+        groupedReports[key].methodOfVisitCount[visit.methodOfContact]++;
+      }
+
+      // Sum up mileage
+      groupedReports[key].totalMileage += Number(visit.mileage || 0);
+      groupedReports[key].totalVisits += 1;
+    });
+
+    // Formatting the grouped data with method counts and total method count per report
+    const formattedReports = Object.values(groupedReports).map((report) => {
+      // Calculate total method count for each report
+      const totalMethodCount = Object.values(report.methodOfVisitCount).reduce(
+        (sum, count) => sum + count,
+        0
+      );
 
       return {
-        tenantName: visit.tenantId ? visit.tenantId.name : 'Unknown Tenant',
-        assignedHCM: visit.hcmId ? visit.hcmId.name : 'Unknown HCM',
-        serviceType: visit.serviceType,
-        dateOfService: visit.date.toISOString().split('T')[0],
-        duration: duration,
-        visitType: visit.activity || 'N/A',
-        methodOfVisit: visit.methodOfContact || 'N/A',
-        mileage: visit.totalMiles || 0,
+        tenantName: report.tenantName,
+        assignedHCM: report.assignedHCM,
+        serviceType: report.serviceType,
+        dateOfService: {
+          start: report.startDate.toISOString().split('T')[0],
+          end: report.endDate.toISOString().split('T')[0],
+        },
+        methodOfVisit: {
+          methods: Object.entries(report.methodOfVisitCount).reduce(
+            (methods, [method, count]) => {
+              methods[method] = count;
+              return methods;
+            },
+            {}
+          ),
+          total: totalMethodCount,
+        },
+        totalVisits: report.totalVisits,
+        mileage: report.totalMileage, // Format to 2 decimal places
       };
     });
 
     res.status(200).json({
       success: true,
-      message: 'Tenant visit compliance reports fetched successfully',
+      message: 'Grouped tenant visit compliance reports fetched successfully',
       response: formattedReports,
     });
   } catch (error) {
-    console.error('Error fetching tenant visit compliance reports:', error);
+    console.error(
+      'Error fetching grouped tenant visit compliance reports:',
+      error
+    );
     res.status(500).json({
       success: false,
-      message:
-        'An error occurred while fetching tenant visit compliance reports.',
+      message: 'An error occurred while fetching grouped reports.',
     });
   }
 };
