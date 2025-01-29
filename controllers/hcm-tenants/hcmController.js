@@ -452,12 +452,12 @@ export const hcmVisitHistory = async (req, res) => {
       .populate({
         path: "hcmId",
         select: "_id name", // Select only the id and name fields
-        model: "users",
+        model: "causers",
       })
       .populate({
         path: "tenantId",
         select: "_id name", // Select only the id and name fields
-        model: "users",
+        model: "causers",
       })
       .select("serviceType date startTime endTime status"); // Select only the specified fields
 
