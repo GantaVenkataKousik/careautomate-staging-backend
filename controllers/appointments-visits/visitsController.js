@@ -664,8 +664,9 @@ export const getVisitsComplianceReports = async (req, res) => {
     const formattedReports = visits.map((visit) => {
       const durationInMinutes =
         (new Date(visit.endTime) - new Date(visit.startTime)) / 60000;
-      const duration = `${Math.floor(durationInMinutes / 60)}h ${durationInMinutes % 60
-        }m`;
+      const duration = `${Math.floor(durationInMinutes / 60)}h ${
+        durationInMinutes % 60
+      }m`;
 
       return {
         tenantId: visit.tenantId ? visit.tenantId._id : 'Unknown Tenant ID',
@@ -694,6 +695,168 @@ export const getVisitsComplianceReports = async (req, res) => {
     res.status(400).json({
       success: false,
       message: error.message,
+    });
+  }
+};
+
+export const filterVisits = async (req, res) => {
+  try {
+    const { companyId } = req.params;
+    const filterCriteria = req.body;
+
+    // Initialize base query with companyId
+    const query = { companyId };
+
+    // If filter criteria provided, add additional filters
+    if (filterCriteria && Object.keys(filterCriteria).length > 0) {
+      if (filterCriteria._id) {
+        query._id = filterCriteria._id;
+      }
+      if (filterCriteria.tenantId) {
+        query.tenantId = filterCriteria.tenantId;
+      }
+      if (filterCriteria.hcmId) {
+        query.hcmId = filterCriteria.hcmId;
+      }
+      if (filterCriteria.creatorId) {
+        query.creatorId = filterCriteria.creatorId;
+      }
+      if (filterCriteria.serviceType) {
+        query.serviceType = filterCriteria.serviceType;
+      }
+      if (filterCriteria.title) {
+        query.title = filterCriteria.title;
+      }
+      if (filterCriteria.date) {
+        query.date = new Date(filterCriteria.date);
+      }
+      if (filterCriteria.startDate && filterCriteria.endDate) {
+        const start = new Date(filterCriteria.startDate);
+        const end = new Date(filterCriteria.endDate);
+        if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
+          query.date = { $gte: start, $lte: end };
+        }
+      }
+      if (filterCriteria.startTime) {
+        query.startTime = filterCriteria.startTime;
+      }
+      if (filterCriteria.endTime) {
+        query.endTime = filterCriteria.endTime;
+      }
+      if (filterCriteria.place) {
+        query.place = filterCriteria.place;
+      }
+      if (filterCriteria.methodOfVisit) {
+        query.methodOfVisit = filterCriteria.methodOfVisit;
+      }
+      if (filterCriteria.reasonForRemote) {
+        query.reasonForRemote = filterCriteria.reasonForRemote;
+      }
+      if (filterCriteria.notes) {
+        query.notes = filterCriteria.notes;
+      }
+      if (filterCriteria.travel) {
+        query.travel = filterCriteria.travel;
+      }
+      if (filterCriteria.totalMiles !== undefined) {
+        query.totalMiles = filterCriteria.totalMiles;
+      }
+      if (filterCriteria.travelWithTenant !== undefined) {
+        query.travelWithTenant = filterCriteria.travelWithTenant;
+      }
+      if (filterCriteria.travelWithoutTenant !== undefined) {
+        query.travelWithoutTenant = filterCriteria.travelWithoutTenant;
+      }
+      if (filterCriteria.signature) {
+        query.signature = filterCriteria.signature;
+      }
+      if (filterCriteria.status) {
+        query.status = filterCriteria.status;
+      }
+    }
+
+    const visits = await Visits.find(query)
+      .populate({
+        path: 'creatorId',
+        select: 'name email role',
+        model: 'causers',
+      })
+      .populate({
+        path: 'hcmId',
+        select: 'name email phoneNo',
+        model: 'causers',
+      })
+      .populate({
+        path: 'tenantId',
+        select: 'name email phoneNo',
+        model: 'causers',
+      })
+      .sort({ dateOfService: 1, startTime: 1 });
+
+    if (visits.length === 0) {
+      return res.status(200).json({
+        success: false,
+        message:
+          'No visits found for this company with the specified criteria.',
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Visits fetched successfully',
+      response: visits,
+    });
+  } catch (error) {
+    console.error('Error in filterVisits:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message,
+    });
+  }
+};
+
+//to get the visit count of a company
+export const getVisitsCount = async (req, res) => {
+  const { companyId } = req.params;
+
+  try {
+    const visits = await Visits.find({ companyId });
+
+    const counts = {
+      status: { pending: 0, approved: 0, rejected: 0 },
+      signature: { done: 0, 'not done': 0 },
+      methodOfContact: { 'in-person': 0, remote: 0 },
+      totalVisits: visits.length,
+    };
+
+    visits.forEach((visit) => {
+      if (visit.status && counts.status[visit.status] !== undefined) {
+        counts.status[visit.status]++;
+      }
+
+      if (visit.signature && counts.signature[visit.signature] !== undefined) {
+        counts.signature[visit.signature]++;
+      }
+
+      if (
+        visit.methodOfContact &&
+        counts.methodOfContact[visit.methodOfContact] !== undefined
+      ) {
+        counts.methodOfContact[visit.methodOfContact]++;
+      }
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Visits count fetched successfully',
+      counts,
+    });
+  } catch (error) {
+    console.error('Error fetching visits count:', error);
+    res.status(500).json({
+      success: false,
+      message: 'An error occurred while fetching visits count.',
     });
   }
 };
