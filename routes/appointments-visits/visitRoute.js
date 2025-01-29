@@ -1,7 +1,7 @@
 // routes/visitRoutes.js
 // routes/visitRoutes.js
 // routes/visitRoutes.js
-import express from "express";
+import express from 'express';
 import {
   createVisit,
   updateVisit,
@@ -12,39 +12,44 @@ import {
   getVisits,
   getVisitsCompliance,
   filterVisits,
-} from "../../controllers/appointments-visits/visitsController.js";
-import { authenticateToken } from "../../middleware/auth.js";
+  getVisitsCount,
+} from '../../controllers/appointments-visits/visitsController.js';
+import { authenticateToken } from '../../middleware/auth.js';
 
 const router = express.Router();
 
-router.post("/create-visit", authenticateToken, createVisit);
+router.post('/create-visit', authenticateToken, createVisit);
 
-router.get("/get-visits/:companyId", authenticateToken, getVisits);
+router.get('/get-visits/:companyId', authenticateToken, getVisits);
 
-router.delete("/delete-visit/:id", authenticateToken, deleteVisit);
+router.delete('/delete-visit/:id', authenticateToken, deleteVisit);
 
-router.put("/update-visit/:id", authenticateToken, updateVisit);
+router.put('/update-visit/:id', authenticateToken, updateVisit);
 
 router.get(
-  "/visits-waiting-for-approval/:companyId",
+  '/visits-waiting-for-approval/:companyId',
   authenticateToken,
   visitsWaitingForApproval
 );
 
-router.post("/mark-visit-as-approved/:companyId", markVisitAsApproved);
+router.post('/mark-visit-as-approved/:companyId', markVisitAsApproved);
 
 //visits compliance reports
 router.get(
-  "/visits-compliance-reports/:companyId",
+  '/visits-compliance-reports/:companyId',
   authenticateToken,
   getVisitsComplianceReports
 );
 
-router.post("/filter-visits/:companyId", authenticateToken, filterVisits);
+router.post('/filter-visits/:companyId', authenticateToken, filterVisits);
 //visit compliance
 router.get(
-  "/visits-compliance/:companyId",
+  '/visits-compliance/:companyId',
   authenticateToken,
   getVisitsCompliance
 );
+
+//visits count
+router.get('/get-visits-count/:companyId', authenticateToken, getVisitsCount);
+
 export default router;
