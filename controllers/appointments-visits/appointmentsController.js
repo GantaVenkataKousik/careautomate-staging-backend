@@ -322,12 +322,8 @@ export const updateAppointment = async (req, res) => {
   try {
     const appointment = await appointments.findById(appointmentId);
     const updatedAppointment = {
-      tenantId:
-        new mongoose.Types.ObjectId(updatedAppointmentData?.tenantId) ||
-        new mongoose.Types.ObjectId(appointment?.tenantId),
-      hcmId:
-        new mongoose.Types.ObjectId(updatedAppointmentData?.hcmId) ||
-        new mongoose.Types.ObjectId(appointment?.hcmId),
+      tenantId: updatedAppointmentData?.tenantId || appointment?.tenantId,
+      hcmId: updatedAppointmentData?.hcmId || appointment?.hcmId,
       date: updatedAppointmentData?.date || appointment?.date,
       startTime: updatedAppointmentData?.startTime || appointment?.startTime,
       endTime: updatedAppointmentData?.endTime || appointment?.endTime,
