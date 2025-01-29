@@ -82,12 +82,12 @@ export const tenantVisitHistory = async (req, res) => {
       .populate({
         path: "hcmId",
         select: "_id name", // Select only the id and name fields
-        model: "users",
+        model: "causers",
       })
       .populate({
         path: "tenantId",
         select: "_id name", // Select only the id and name fields
-        model: "users",
+        model: "causers",
       })
       .select("serviceType date startTime endTime status"); // Select only the specified fields
 
@@ -958,7 +958,7 @@ export const getTenantNamesByCompany = async (req, res) => {
     // Fetch tenants with only the required fields (name and _id)
     const tenants = await users
       .find({ role: 0, companyId: companyObjectId })
-      .select("_id name");
+      .select("_id name info_id email");
 
     return res.status(200).json({
       success: true,
