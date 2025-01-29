@@ -1,42 +1,42 @@
-import Visits from '../../models/appointments-visits/visits.js';
-import users from '../../models/account/users.js';
-import ServiceTracking from '../../models/bills/serviceTracking.js';
-import info from '../../models/hcm-tenants/tenantInfo.js';
-import approvedvisits from '../../models/appointments-visits/approvedVisits.js';
-import Bill from '../../models/bills/bills.js';
-import TenantInfo from '../../models/hcm-tenants/tenantInfo.js';
-import billsPending from '../../models/bills/billsPending.js';
-import mongoose from 'mongoose';
+import Visits from "../../models/appointments-visits/visits.js";
+import users from "../../models/account/users.js";
+import ServiceTracking from "../../models/bills/serviceTracking.js";
+import info from "../../models/hcm-tenants/tenantInfo.js";
+import approvedvisits from "../../models/appointments-visits/approvedVisits.js";
+import Bill from "../../models/bills/bills.js";
+import TenantInfo from "../../models/hcm-tenants/tenantInfo.js";
+import billsPending from "../../models/bills/billsPending.js";
+import mongoose from "mongoose";
 
 export const fetchVisits = async (req, res) => {
   try {
     const { companyId } = req.params;
     const visits = await Visits.find({ companyId })
       .populate({
-        path: 'creatorId',
-        select: 'name email role',
-        model: 'users',
+        path: "creatorId",
+        select: "name email role",
+        model: "users",
       })
       .populate({
-        path: 'hcmId',
-        select: 'name email phoneNo',
-        model: 'users',
+        path: "hcmId",
+        select: "name email phoneNo",
+        model: "users",
       })
       .populate({
-        path: 'tenantId',
-        select: 'name email phoneNo',
-        model: 'users',
+        path: "tenantId",
+        select: "name email phoneNo",
+        model: "users",
       })
       .sort({ dateOfService: 1, startTime: 1 });
 
     res.status(200).json({
       success: true,
-      message: 'All visits fetched successfully',
+      message: "All visits fetched successfully",
       response: visits,
     });
   } catch (error) {
-    console.error('Error in fetchVisits:', error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    console.error("Error in fetchVisits:", error);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
@@ -72,16 +72,16 @@ export const createVisit = async (req, res) => {
     if (!creator) {
       return res
         .status(303)
-        .json({ success: false, message: 'Creator not found' });
+        .json({ success: false, message: "Creator not found" });
     }
 
-    let visitStatus = 'pending';
+    let visitStatus = "pending";
     if (creator.role === 2) {
-      visitStatus = 'approved'; // Office admin
+      visitStatus = "approved"; // Office admin
     } else if (creator.role === 0) {
       return res
         .status(303)
-        .json({ success: false, message: 'Tenants cannot create visits' });
+        .json({ success: false, message: "Tenants cannot create visits" });
     }
 
     // Parse startTime and endTime as Date objects
@@ -92,7 +92,7 @@ export const createVisit = async (req, res) => {
     if (visitStartTime >= visitEndTime) {
       return res.status(400).json({
         success: false,
-        message: 'Start time must be before end time.',
+        message: "Start time must be before end time.",
         response: null,
       });
     }
@@ -169,17 +169,17 @@ export const createVisit = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: 'Visit created successfully',
+      message: "Visit created successfully",
       response: {
-        'New Visit': newVisit,
-        'Service Record': serviceRecord,
+        "New Visit": newVisit,
+        "Service Record": serviceRecord,
       },
     });
   } catch (error) {
-    console.error('Error in createVisit:', error);
+    console.error("Error in createVisit:", error);
     res
       .status(500)
-      .json({ success: false, message: 'Server error', error: error.message });
+      .json({ success: false, message: "Server error", error: error.message });
   }
 };
 
@@ -188,33 +188,33 @@ export const getVisits = async (req, res) => {
   try {
     const visits = await Visits.find({ companyId })
       .populate({
-        path: 'creatorId',
-        select: 'name email role',
-        model: 'causers',
+        path: "creatorId",
+        select: "name email role",
+        model: "causers",
       })
       .populate({
-        path: 'hcmId',
-        select: 'name email phoneNo',
-        model: 'causers',
+        path: "hcmId",
+        select: "name email phoneNo",
+        model: "causers",
       })
       .populate({
-        path: 'tenantId',
-        select: 'name email phoneNo',
-        model: 'causers',
+        path: "tenantId",
+        select: "name email phoneNo",
+        model: "causers",
       });
 
     res.status(200).json({
       success: true,
-      message: 'Visits fetched successfully',
+      message: "Visits fetched successfully",
       response: {
         visits: visits,
       },
     });
   } catch (error) {
-    console.error('Error in getVisits:', error);
+    console.error("Error in getVisits:", error);
     res
       .status(500)
-      .json({ success: false, message: 'Server error', error: error.message });
+      .json({ success: false, message: "Server error", error: error.message });
   }
 };
 
@@ -226,7 +226,7 @@ export const updateVisit = async (req, res) => {
     if (!visit) {
       return res
         .status(400)
-        .json({ success: false, message: 'Visit not found' });
+        .json({ success: false, message: "Visit not found" });
     }
     const updatedVisitData = {
       creatorId: updateData?.creatorId || visit.creatorId,
@@ -272,7 +272,7 @@ export const updateVisit = async (req, res) => {
       if (unitsUsed > serviceTracking.unitsRemaining) {
         return res.status(400).json({
           success: false,
-          message: 'Units remaining is less than the units used',
+          message: "Units remaining is less than the units used",
         });
       }
       serviceTracking.workedUnits =
@@ -295,15 +295,15 @@ export const updateVisit = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: 'Visit updated successfully',
+      message: "Visit updated successfully",
       response: {
-        'Updated Visit': updatedVisit,
-        'Updated Service Record': serviceRecord,
+        "Updated Visit": updatedVisit,
+        "Updated Service Record": serviceRecord,
       },
     });
   } catch (error) {
-    console.error('Error in updateVisits:', error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    console.error("Error in updateVisits:", error);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
@@ -314,29 +314,29 @@ export const deleteVisit = async (req, res) => {
     if (!deletedVisit) {
       return res
         .status(400)
-        .json({ success: false, message: 'Visit not found' });
+        .json({ success: false, message: "Visit not found" });
     }
 
     res.status(200).json({
       success: true,
-      message: 'Visit deleted successfully',
+      message: "Visit deleted successfully",
       response: {
         deletedVisit: deletedVisit,
       },
     });
   } catch (error) {
-    console.error('Error in deleteVisit:', error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    console.error("Error in deleteVisit:", error);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
 export const visitsWaitingForApproval = async (req, res) => {
   const { companyId } = req.params;
   try {
-    const visits = await Visits.find({ status: 'pending', companyId });
+    const visits = await Visits.find({ status: "pending", companyId });
     res.status(200).json({
       success: true,
-      message: 'Visits waiting for approval fetched successfully',
+      message: "Visits waiting for approval fetched successfully",
       response: {
         visits: visits,
         count: visits.length,
@@ -352,36 +352,36 @@ export const getVisitsCompliance = async (req, res) => {
   try {
     const visits = await Visits.find({ companyId })
       .populate({
-        path: 'tenantId',
-        select: '_id name email',
-        model: 'causers',
+        path: "tenantId",
+        select: "_id name email",
+        model: "causers",
       })
       .populate({
-        path: 'hcmId',
-        select: '_id name email',
-        model: 'causers',
+        path: "hcmId",
+        select: "_id name email",
+        model: "causers",
       });
 
     const visitCounts = {};
     const visitDetails = {
-      'in-person': {},
+      "in-person": {},
       indirect: {},
       remote: {},
     };
 
     const monthNames = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
     ];
 
     visits.forEach((visit) => {
@@ -398,42 +398,42 @@ export const getVisitsCompliance = async (req, res) => {
         visitCounts[year] = {};
       }
       if (!visitCounts[year][month]) {
-        visitCounts[year][month] = { 'in-person': 0, indirect: 0, remote: 0 };
+        visitCounts[year][month] = { "in-person": 0, indirect: 0, remote: 0 };
       }
 
-      if (!visitDetails['in-person'][year]) {
-        visitDetails['in-person'][year] = {};
+      if (!visitDetails["in-person"][year]) {
+        visitDetails["in-person"][year] = {};
       }
-      if (!visitDetails['indirect'][year]) {
-        visitDetails['indirect'][year] = {};
+      if (!visitDetails["indirect"][year]) {
+        visitDetails["indirect"][year] = {};
       }
-      if (!visitDetails['remote'][year]) {
-        visitDetails['remote'][year] = {};
-      }
-
-      if (!visitDetails['in-person'][year][month]) {
-        visitDetails['in-person'][year][month] = [];
-      }
-      if (!visitDetails['indirect'][year][month]) {
-        visitDetails['indirect'][year][month] = [];
-      }
-      if (!visitDetails['remote'][year][month]) {
-        visitDetails['remote'][year][month] = [];
+      if (!visitDetails["remote"][year]) {
+        visitDetails["remote"][year] = {};
       }
 
-      const method = visit.methodOfContact || 'unknown';
+      if (!visitDetails["in-person"][year][month]) {
+        visitDetails["in-person"][year][month] = [];
+      }
+      if (!visitDetails["indirect"][year][month]) {
+        visitDetails["indirect"][year][month] = [];
+      }
+      if (!visitDetails["remote"][year][month]) {
+        visitDetails["remote"][year][month] = [];
+      }
+
+      const method = visit.methodOfContact || "unknown";
       switch (method) {
-        case 'in-person':
-          visitCounts[year][month]['in-person']++;
-          visitDetails['in-person'][year][month].push(createVisitDetail(visit));
+        case "in-person":
+          visitCounts[year][month]["in-person"]++;
+          visitDetails["in-person"][year][month].push(createVisitDetail(visit));
           break;
-        case 'indirect':
-          visitCounts[year][month]['indirect']++;
-          visitDetails['indirect'][year][month].push(createVisitDetail(visit));
+        case "indirect":
+          visitCounts[year][month]["indirect"]++;
+          visitDetails["indirect"][year][month].push(createVisitDetail(visit));
           break;
-        case 'remote':
-          visitCounts[year][month]['remote']++;
-          visitDetails['remote'][year][month].push(createVisitDetail(visit));
+        case "remote":
+          visitCounts[year][month]["remote"]++;
+          visitDetails["remote"][year][month].push(createVisitDetail(visit));
           break;
         default:
           console.warn(`Unknown methodOfContact for visit ID: ${visit._id}`);
@@ -443,7 +443,7 @@ export const getVisitsCompliance = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: 'Visit compliance fetched successfully',
+      message: "Visit compliance fetched successfully",
       response: {
         visitCounts,
         visitDetails,
@@ -451,10 +451,10 @@ export const getVisitsCompliance = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error fetching visit data:', error);
+    console.error("Error fetching visit data:", error);
     res.status(500).json({
       success: false,
-      message: 'An error occurred while fetching visit compliance data.',
+      message: "An error occurred while fetching visit compliance data.",
     });
   }
 };
@@ -463,18 +463,18 @@ function createVisitDetail(visit) {
   return {
     visitId: visit._id,
     tenant: {
-      tenantId: visit.tenantId ? visit.tenantId._id : 'Unknown Tenant ID',
-      tenantName: visit.tenantId ? visit.tenantId.name : 'Unknown Tenant',
-      tenantEmail: visit.tenantId ? visit.tenantId.email : 'Unknown Email',
+      tenantId: visit.tenantId ? visit.tenantId._id : "Unknown Tenant ID",
+      tenantName: visit.tenantId ? visit.tenantId.name : "Unknown Tenant",
+      tenantEmail: visit.tenantId ? visit.tenantId.email : "Unknown Email",
     },
     hcm: {
-      hcmId: visit.hcmId ? visit.hcmId._id : 'Unknown HCM ID',
-      hcmName: visit.hcmId ? visit.hcmId.name : 'Unknown HCM',
-      hcmEmail: visit.hcmId ? visit.hcmId.email : 'Unknown Email',
+      hcmId: visit.hcmId ? visit.hcmId._id : "Unknown HCM ID",
+      hcmName: visit.hcmId ? visit.hcmId.name : "Unknown HCM",
+      hcmEmail: visit.hcmId ? visit.hcmId.email : "Unknown Email",
     },
     serviceType: visit.serviceType,
-    dateOfService: visit.date.toISOString().split('T')[0],
-    methodOfVisit: visit.methodOfContact || 'N/A',
+    dateOfService: visit.date.toISOString().split("T")[0],
+    methodOfVisit: visit.methodOfContact || "N/A",
   };
 }
 
@@ -488,12 +488,12 @@ export const markVisitAsApproved = async (req, res) => {
     if (!visit) {
       return res
         .status(400)
-        .json({ success: false, message: 'Visit not found' });
+        .json({ success: false, message: "Visit not found" });
     }
 
     // Update the visit status, signature, and time of approval
-    visit.status = 'approved';
-    visit.signature = 'done';
+    visit.status = "approved";
+    visit.signature = "done";
     visit.timeOfApproval = new Date(); // Set the current date and time
 
     await visit.save();
@@ -505,7 +505,7 @@ export const markVisitAsApproved = async (req, res) => {
     if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
       return res
         .status(400)
-        .json({ success: false, message: 'Invalid start or end time' });
+        .json({ success: false, message: "Invalid start or end time" });
     }
 
     const newVisitApproved = new approvedvisits({
@@ -521,14 +521,14 @@ export const markVisitAsApproved = async (req, res) => {
     if (!user) {
       return res
         .status(400)
-        .json({ success: false, message: 'Tenant not found' });
+        .json({ success: false, message: "Tenant not found" });
     }
 
     const tenantInfo = await TenantInfo.findById(user.info_id);
     if (!tenantInfo) {
       return res
         .status(400)
-        .json({ success: false, message: 'Tenant information not found' });
+        .json({ success: false, message: "Tenant information not found" });
     }
 
     const service = await ServiceTracking.findOne({
@@ -571,7 +571,7 @@ export const markVisitAsApproved = async (req, res) => {
         additionalIdentifier: tenantInfo.admissionInfo.ssn,
       },
       receiverName: {
-        name: 'Anand',
+        name: "Anand",
       },
       subscriber: {
         lastName: tenantInfo.personalInfo.lastName,
@@ -625,7 +625,7 @@ export const markVisitAsApproved = async (req, res) => {
 
     const response = {
       success: true,
-      message: 'Visit approved successfully',
+      message: "Visit approved successfully",
       visit: {
         visit: visit,
         bill: newBill,
@@ -635,10 +635,10 @@ export const markVisitAsApproved = async (req, res) => {
 
     res.status(200).json(response);
   } catch (error) {
-    console.error('Error marking visit as completed:', error);
+    console.error("Error marking visit as completed:", error);
     res.status(500).json({
       success: false,
-      message: 'Internal Server Error',
+      message: "Internal Server Error",
       response: error.message,
     });
   }
@@ -650,50 +650,168 @@ export const getVisitsComplianceReports = async (req, res) => {
     // Fetch all visit records
     const visits = await Visits.find({ companyId })
       .populate({
-        path: 'tenantId',
-        select: '_id name email phoneNo',
-        model: 'causers',
+        path: "tenantId",
+        select: "_id name email phoneNo",
+        model: "causers",
       })
       .populate({
-        path: 'hcmId',
-        select: '_id name email phoneNo',
-        model: 'causers',
+        path: "hcmId",
+        select: "_id name email phoneNo",
+        model: "causers",
       });
 
     // Format the response
     const formattedReports = visits.map((visit) => {
       const durationInMinutes =
         (new Date(visit.endTime) - new Date(visit.startTime)) / 60000;
-      const duration = `${Math.floor(durationInMinutes / 60)}h ${durationInMinutes % 60
-        }m`;
+      const duration = `${Math.floor(durationInMinutes / 60)}h ${
+        durationInMinutes % 60
+      }m`;
 
       return {
-        tenantId: visit.tenantId ? visit.tenantId._id : 'Unknown Tenant ID',
-        tenantName: visit.tenantId ? visit.tenantId.name : 'Unknown Tenant',
-        hcmId: visit.hcmId ? visit.hcmId._id : 'Unknown HCM ID',
-        assignedHCM: visit.hcmId ? visit.hcmId.name : 'Unknown HCM',
+        tenantId: visit.tenantId ? visit.tenantId._id : "Unknown Tenant ID",
+        tenantName: visit.tenantId ? visit.tenantId.name : "Unknown Tenant",
+        hcmId: visit.hcmId ? visit.hcmId._id : "Unknown HCM ID",
+        assignedHCM: visit.hcmId ? visit.hcmId.name : "Unknown HCM",
         serviceType: visit.serviceType,
-        dateOfService: visit.date.toISOString().split('T')[0],
+        dateOfService: visit.date.toISOString().split("T")[0],
         duration: duration,
-        visitType: visit.activity || 'N/A',
-        methodOfVisit: visit.methodOfContact || 'N/A',
+        visitType: visit.activity || "N/A",
+        methodOfVisit: visit.methodOfContact || "N/A",
         mileage: visit.totalMiles || 0,
       };
     });
 
     res.status(200).json({
       success: true,
-      message: 'Visits compliance reports fetched successfully',
+      message: "Visits compliance reports fetched successfully",
       response: {
         totalVisits: visits.length,
         visits: formattedReports,
       },
     });
   } catch (error) {
-    console.error('Error fetching visits compliance reports:', error);
+    console.error("Error fetching visits compliance reports:", error);
     res.status(400).json({
       success: false,
       message: error.message,
+    });
+  }
+};
+
+export const filterVisits = async (req, res) => {
+  try {
+    const { companyId } = req.params;
+    const filterCriteria = req.body;
+
+    // Initialize base query with companyId
+    const query = { companyId };
+
+    // If filter criteria provided, add additional filters
+    if (filterCriteria && Object.keys(filterCriteria).length > 0) {
+      if (filterCriteria._id) {
+        query._id = filterCriteria._id;
+      }
+      if (filterCriteria.tenantId) {
+        query.tenantId = filterCriteria.tenantId;
+      }
+      if (filterCriteria.hcmId) {
+        query.hcmId = filterCriteria.hcmId;
+      }
+      if (filterCriteria.creatorId) {
+        query.creatorId = filterCriteria.creatorId;
+      }
+      if (filterCriteria.serviceType) {
+        query.serviceType = filterCriteria.serviceType;
+      }
+      if (filterCriteria.title) {
+        query.title = filterCriteria.title;
+      }
+      if (filterCriteria.date) {
+        query.date = new Date(filterCriteria.date);
+      }
+      if (filterCriteria.startDate && filterCriteria.endDate) {
+        const start = new Date(filterCriteria.startDate);
+        const end = new Date(filterCriteria.endDate);
+        if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
+          query.date = { $gte: start, $lte: end };
+        }
+      }
+      if (filterCriteria.startTime) {
+        query.startTime = filterCriteria.startTime;
+      }
+      if (filterCriteria.endTime) {
+        query.endTime = filterCriteria.endTime;
+      }
+      if (filterCriteria.place) {
+        query.place = filterCriteria.place;
+      }
+      if (filterCriteria.methodOfVisit) {
+        query.methodOfVisit = filterCriteria.methodOfVisit;
+      }
+      if (filterCriteria.reasonForRemote) {
+        query.reasonForRemote = filterCriteria.reasonForRemote;
+      }
+      if (filterCriteria.notes) {
+        query.notes = filterCriteria.notes;
+      }
+      if (filterCriteria.travel) {
+        query.travel = filterCriteria.travel;
+      }
+      if (filterCriteria.totalMiles !== undefined) {
+        query.totalMiles = filterCriteria.totalMiles;
+      }
+      if (filterCriteria.travelWithTenant !== undefined) {
+        query.travelWithTenant = filterCriteria.travelWithTenant;
+      }
+      if (filterCriteria.travelWithoutTenant !== undefined) {
+        query.travelWithoutTenant = filterCriteria.travelWithoutTenant;
+      }
+      if (filterCriteria.signature) {
+        query.signature = filterCriteria.signature;
+      }
+      if (filterCriteria.status) {
+        query.status = filterCriteria.status;
+      }
+    }
+
+    const visits = await Visits.find(query)
+      .populate({
+        path: "creatorId",
+        select: "name email role",
+        model: "causers",
+      })
+      .populate({
+        path: "hcmId",
+        select: "name email phoneNo",
+        model: "causers",
+      })
+      .populate({
+        path: "tenantId",
+        select: "name email phoneNo",
+        model: "causers",
+      })
+      .sort({ dateOfService: 1, startTime: 1 });
+
+    if (visits.length === 0) {
+      return res.status(200).json({
+        success: false,
+        message:
+          "No visits found for this company with the specified criteria.",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Visits fetched successfully",
+      response: visits,
+    });
+  } catch (error) {
+    console.error("Error in filterVisits:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
     });
   }
 };
